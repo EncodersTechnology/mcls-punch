@@ -1,0 +1,104 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: auto; /* Prevent scrolling */
+}
+
+.x-app-layout {
+    height: 100%; /* Ensure the layout takes up full height */
+    display: flex;
+    flex-direction: column;
+}
+
+
+/* Container and sections */
+.container {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: calc(100vh - 20px); /* Adjust for header height */
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.section1 {
+    display: flex;
+    color: white;
+    width: 50%;
+    height: auto;
+    padding: 20px 20px;
+    text-align: center;
+    border-radius: 1px; /* Rounded corners */
+    box-sizing: border-box; /* Ensure padding is included in width/height calculations */
+}
+.section2 {
+    flex: 1;  /* Each section will take equal width */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    height:auto;
+    padding: 20px;
+    text-align: center;
+    border-radius: 1px; /* Rounded corners */
+    box-sizing: border-box; /* Ensure padding is included in width/height calculations */
+}
+
+/* Gradient 1: Light blue to dark blue (matching header) */
+.gradient-one {
+    background: #F8F8F8 ; /* Soft dark blue gradient */
+}
+
+/* Gradient 2: Lavender to deep purple */
+.gradient-two {
+    background: #9b9b9b ; /* Purple gradient */
+}
+
+/* Header text color */
+h2 {
+    color: #333; /* Dark gray header text */
+}
+
+h1 {
+    font-size: 48px;
+    margin-bottom: 20px;
+}
+
+p {
+    font-size: 20px;
+}
+
+/* Ensures header is full width */
+.relative {
+    width: 100%;
+}
+
+/* Form styles for section 1 */
+form {
+    width: 100%;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-top: 10px;
+    color: #555;
+}
+
+label.required::after {
+    content: " *";
+    color: red;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 12px;
+}
+
+select {
+    color: black; /* Change text color to black */
+}
+
+input, textarea {
+    color: black; /* Change text color to black */
+}

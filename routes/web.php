@@ -44,6 +44,10 @@ Route::middleware('auth')->group(function () {
     Route::resource('sites', SiteController::class);
     Route::resource('residents', ResidentController::class);
 
+    Route::post('get-residents', [ResidentController::class, 'getResidents'])->name('get.residents');
+
+    Route::get('form-data-query',[FormDataController::class, 'query']);
+
 });
 
 require __DIR__.'/auth.php';

@@ -21,7 +21,18 @@
         </div>
     </x-slot>
     <link href="https://fonts.googleapis.com/css2?family=Muli&family=Rubik:wght@500&display=swap" rel="stylesheet">
+    <style>
+        #section1 {
+            background-image: url('{{ asset(' blur.png') }}');
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
 
+        form label {
+            font-weight: bold;
+        }
+    </style>
     <div class="container mx-auto">
         <!-- Section 1: Form Section -->
         <div id="section1" class="section1 gradient-one p-6 rounded-lg shadow-lg overflow-scroll">
@@ -52,14 +63,6 @@
                     <input type="text" id="agencyEmployeeName" name="agency_employee_name" required placeholder="John Doe">
                 </div>
 
-                <label for="site" class="required">Site of Work:</label>
-                <select id="site" name="site" required>
-                    <option value="">Select Site</option>
-                    <option value="Site A">Site A</option>
-                    <option value="Site B">Site B</option>
-                    <option value="Site C">Site C</option>
-                </select>
-
                 <label for="shift" class="required">Select Shift:</label>
                 <select id="shift" name="shift" required>
                     <option value="">Select Shift</option>
@@ -67,8 +70,19 @@
                     <option value="night">Night Shift (8:00 PM to 8:00 AM)</option>
                 </select>
 
-                <label for="residentName" class="required">Resident Name:</label>
-                <input type="text" id="residentName" name="resident_name" required placeholder="John Doe">
+                <label for="site" class="required">Site of Work:</label>
+                <select id="site" name="site_id" required class="site_select">
+                    <option value="" selected disabled>Select Site</option>
+                    @foreach($sites as $site)
+                    <option value="{{$site->id}}">{{$site->name}}</option>
+                    @endforeach
+                </select>
+
+
+                <label for="resident_select" class="required">Resident:</label>
+                <select id="resident_select" name="resident_id" required>
+                    <option value="" selected disabled>Select Resident</option>
+                </select>
 
                 <input type="hidden" id="logDate" name="log_date">
                 <input type="hidden" id="logTime" name="log_time">
@@ -102,6 +116,23 @@
         <div id="section2" class="section2 gradient-two p-6 rounded-lg shadow-lg overflow-auto hidden">
             <div class="mew">
                 <h1 class="text-2xl font-semibold mb-4">Latest Log Entry</h1>
+                <div class="flex gap-4">
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="filter_site" class="required">Site of Work:</label>
+                        <select id="filter_site" name="filter_site_id" required class="filter_site_select">
+                            <option value="" selected disabled>All Site</option>
+                            @foreach($sites as $site)
+                            <option value="{{$site->id}}">{{$site->name}}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="filter_resident_select" class="required">Resident:</label>
+                        <select id="filter_resident_select" name="filter_resident_id" required>
+                            <option value="" selected disabled>All Resident</option>
+                        </select>
+                    </div>
+                </div>
                 <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
                     @if($form_data)
                     <tbody>
@@ -119,15 +150,11 @@
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Site of Work:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_site">{{ $form_data->site }}</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_site">{{ $form_data->site->name }}</td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Shift:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_shift">{{ $form_data->site }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Activities of Daily Living:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_adls">{{ $form_data->shift }}</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_shift">{{ $form_data->shift }}</td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Medical and Health Information:</td>
@@ -246,17 +273,7 @@
                             errorContainer.appendChild(errorText);
                         });
                     } else if (status === 201) {
-                        document.getElementById('display_employeeType').innerHTML = body.data.employee_type;
-                        document.getElementById('display_fullName').innerHTML = body.data.mcls_name ? body.data.mcls_name : body.data.agency_employee_name;
-                        document.getElementById('display_site').innerHTML = body.data.site;
-                        document.getElementById('display_shift').innerHTML = body.data.shift;
-                        document.getElementById('display_adls').innerHTML = body.data.adls;
-                        document.getElementById('display_medical').innerHTML = body.data.medical;
-                        document.getElementById('display_behavior').innerHTML = body.data.behavior;
-                        document.getElementById('display_activities').innerHTML = body.data.activities;
-                        document.getElementById('display_nutrition').innerHTML = body.data.nutrition;
-                        document.getElementById('display_sleep').innerHTML = body.data.sleep;
-                        document.getElementById('display_notes').innerHTML = body.data.notes;
+                        updateTableWithData(body.data);
                         alert("Form submitted successfully!");
                         document.getElementById("logForm").reset();
                     } else {
@@ -267,5 +284,143 @@
                     alert(error.message);
                 });
         });
+
+        document.querySelector("select.site_select").addEventListener('change', function() {
+            var site_id = this.value;
+            var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{ route('get.residents') }}', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    var subcategories = data;
+                    var residentSelect = document.getElementById("resident_select");
+                    residentSelect.innerHTML = ''; // Clear existing options
+
+                    var defaultOption = document.createElement("option");
+                    defaultOption.disabled = true;
+                    defaultOption.selected = true;
+                    defaultOption.textContent = "Select Resident";
+                    residentSelect.appendChild(defaultOption);
+
+                    subcategories.forEach(function(value) {
+                        var option = document.createElement("option");
+                        option.value = value.id;
+                        option.textContent = value.name;
+                        residentSelect.appendChild(option);
+                    });
+                }
+            };
+
+            xhr.onerror = function() {
+                console.log('Error: ', xhr.statusText);
+            };
+
+            xhr.send('site_id=' + encodeURIComponent(site_id) + '&_token=' + encodeURIComponent(csrfToken));
+        });
+
+        document.querySelector("select.filter_site_select").addEventListener('change', function() {
+            var site_id = this.value;
+            var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{ route('get.residents') }}', true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    var data = JSON.parse(xhr.responseText);
+                    var subcategories = data;
+                    var residentSelect = document.getElementById("filter_resident_select");
+                    residentSelect.innerHTML = ''; // Clear existing options
+
+                    var defaultOption = document.createElement("option");
+                    defaultOption.disabled = true;
+                    defaultOption.selected = true;
+                    defaultOption.value = "";
+                    defaultOption.textContent = "Select Resident";
+                    residentSelect.appendChild(defaultOption);
+
+                    subcategories.forEach(function(value) {
+                        var option = document.createElement("option");
+                        option.value = value.id;
+                        option.textContent = value.name;
+                        residentSelect.appendChild(option);
+                    });
+                }
+            };
+
+            xhr.onerror = function() {
+                console.log('Error: ', xhr.statusText);
+            };
+
+            xhr.send('site_id=' + encodeURIComponent(site_id) + '&_token=' + encodeURIComponent(csrfToken));
+        });
+
+        document.getElementById('filter_site').addEventListener('change', function () {
+            const site_id = this.value;
+            const resident_id = document.getElementById('filter_resident_select').value;
+            fetchFormData(site_id, resident_id);
+        });
+
+        document.getElementById('filter_resident_select').addEventListener('change', function () {
+            const resident_id = this.value;
+            const site_id = document.getElementById('filter_site').value;
+            fetchFormData(site_id, resident_id);
+        });
+
+        function fetchFormData(site_id, resident_id) {
+            fetch(`/form-data-query?site_id=${site_id}&resident_id=${resident_id}`, {
+        method: 'GET',  // or 'POST' depending on your request type
+        headers: {
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content,
+            "Content-Type": "application/json"  // Optional, depending on your request
+        }
+    })
+            .then(response => response.json())
+            .then(body => {
+                if (body.data) {
+                    // Assuming body.data contains the returned object with the form data
+                    updateTableWithData(body.data);
+                } else {
+                    // Handle case where no data is returned, e.g., no log data found
+                    resetTable();
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching form data:', error);
+            });
+        }
+
+        function updateTableWithData(data) {
+            document.getElementById('display_employeeType').textContent = data.employee_type || 'N/A';
+            document.getElementById('display_fullName').textContent = data.mcls_name ? data.mcls_name : data.agency_employee_name || 'N/A';
+            document.getElementById('display_site').textContent = data.site ? data.site.name : 'N/A';
+            document.getElementById('display_shift').textContent = data.shift || 'N/A';
+            document.getElementById('display_adls').textContent = data.adls || 'N/A';
+            document.getElementById('display_medical').textContent = data.medical || 'N/A';
+            document.getElementById('display_behavior').textContent = data.behavior || 'N/A';
+            document.getElementById('display_activities').textContent = data.activities || 'N/A';
+            document.getElementById('display_nutrition').textContent = data.nutrition || 'N/A';
+            document.getElementById('display_sleep').textContent = data.sleep || 'N/A';
+            document.getElementById('display_notes').textContent = data.notes || 'N/A';
+        }
+
+        function resetTable() {
+            document.getElementById('display_employeeType').textContent = 'No data available';
+            document.getElementById('display_fullName').textContent = 'No data available';
+            document.getElementById('display_site').textContent = 'No data available';
+            document.getElementById('display_shift').textContent = 'No data available';
+            document.getElementById('display_adls').textContent = 'No data available';
+            document.getElementById('display_medical').textContent = 'No data available';
+            document.getElementById('display_behavior').textContent = 'No data available';
+            document.getElementById('display_activities').textContent = 'No data available';
+            document.getElementById('display_nutrition').textContent = 'No data available';
+            document.getElementById('display_sleep').textContent = 'No data available';
+            document.getElementById('display_notes').textContent = 'No data available';
+        }
     </script>
 </x-app-layout>

@@ -69,15 +69,15 @@
                 <table class="min-w-full bg-gray-800 text-white border border-gray-700">
                     <thead>
                         <tr>
-                            <th class="py-2 px-4 border-b">ID</th>
-                            <th class="py-2 px-4 border-b">Name</th>
-                            <th class="py-2 px-4 border-b">Site</th>
-                            <th class="py-2 px-4 border-b">Actions</th>
+                            <th class="py-2 px-4 text-left">ID</th>
+                            <th class="py-2 px-4 text-left">Name</th>
+                            <th class="py-2 px-4 text-left">Site</th>
+                            <th class="py-2 px-4 text-left">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($residents as $resident)
-                        <tr>
+                        <tr class="odd:bg-gray-700 even:bg-gray-600">
                             <td class="py-2 px-4 border-b">{{ $resident->id }}</td>
                             <td class="py-2 px-4 border-b">{{ $resident->name }}</td>
                             <td class="py-2 px-4 border-b">{{ $resident->site->name }}</td>

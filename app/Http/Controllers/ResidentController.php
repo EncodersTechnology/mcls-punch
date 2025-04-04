@@ -16,6 +16,15 @@ class ResidentController extends Controller
         //
     }
 
+    public function getResidents(Request $request)
+    {
+        $site_id = $request->site_id;
+        // Fetch the residents based on the site_id
+        $residents = Resident::where('site_id', $site_id)->get();
+        return $residents;
+    }
+
+
     /**
      * Show the form for creating a new resource.
      */
@@ -33,7 +42,7 @@ class ResidentController extends Controller
             'name' => 'required|string|max:255',
             'site_id' => 'required|exists:sites,id',
         ]);
-    
+
         Resident::create($validated);
         $sites = Site::all();
         $residents = Resident::all();
@@ -65,12 +74,12 @@ class ResidentController extends Controller
             'name' => 'required|string|max:255',
             'site_id' => 'required|exists:sites,id',
         ]);
-    
+
         $resident->update($request->all());
         $sites = Site::all();
         $residents = Resident::all();
         return redirect()->route('admin.resident')->with(['sites' => $sites, 'residents' => $residents, 'success' => 'Resident Updated Successfully']);
-  }
+    }
 
     /**
      * Remove the specified resource from storage.
@@ -87,5 +96,5 @@ class ResidentController extends Controller
         $sites = Site::all();
         $residents = Resident::all();
         return redirect()->route('admin.resident')->with(['sites' => $sites, 'residents' => $residents, 'success' => 'Resident Deleted Successfully']);
-  }
+    }
 }

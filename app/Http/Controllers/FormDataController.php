@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\FormData;
+use App\Models\Resident;
+use App\Models\Site;
 use Exception;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -11,10 +13,29 @@ use Illuminate\Validation\ValidationException;
 class FormDataController extends Controller
 {
 
-    public function index(){
+    public function index()
+    {
         // return latest form data
-        $form_data = FormData::latest()->first();
-        return view('admin.dashboard', ['form_data' => $form_data]);
+        $form_data = FormData::with('site')->latest()->first();
+        $sites = Site::all();
+        $residents = Resident::all();
+        return view('admin.dashboard', ['sites' => $sites, 'residents' => $residents, 'form_data' => $form_data]);
+    }
+
+    public function query(Request $request)
+    {
+        $site_id = $request->query('site_id');
+        $resident_id = $request->query('resident_id');
+        $form_data = FormData::when($site_id, function ($query) use ($site_id) {
+            return $query->where('site_id', $site_id);
+        })
+            ->when($resident_id, function ($query) use ($resident_id) {
+                return $query->where('resident_id', $resident_id);
+            })
+            ->with('site')
+            ->first();
+
+        return response()->json(['data'=>$form_data]);
     }
 
     public function store(Request $request)
@@ -22,7 +43,7 @@ class FormDataController extends Controller
         try {
             $validated = $request->validate([
                 'employee_type' => ['required', Rule::in(['mcls', 'agency'])],
-    
+
                 // Required if employee_type is mcls
                 'mcls_name' => 'required_if:employee_type,mcls|nullable|string|max:255',
                 'mcls_email' => [
@@ -31,14 +52,15 @@ class FormDataController extends Controller
                     'email',
                     'regex:/^[a-zA-Z0-9._%+-]+@multiculturalcls\.org$/'
                 ],
-    
+
                 // Required if employee_type is agency
                 'agency_name' => 'required_if:employee_type,agency|nullable|string|max:255',
                 'agency_employee_name' => 'required_if:employee_type,agency|nullable|string|max:255',
-    
-                'site' => 'required|string|max:255',
+
+                'site_id' => ['required', 'exists:sites,id'],
+                'resident_id' => ['required', 'exists:residents,id'],
+
                 'shift' => ['required', Rule::in(['morning', 'night'])],
-                'resident_name' => 'required|string|max:255',
                 'log_date' => 'required|date',
                 'log_time' => 'required',
                 'adls' => 'required|string',
@@ -52,17 +74,19 @@ class FormDataController extends Controller
             $validated['log_time'] = date("H:i:s", strtotime($validated['log_time']));
 
             $form_data = FormData::create($validated);
+            $form_data->load('site');
             return response()->json(['status' => true, 'data' => $form_data], 201);
         } catch (ValidationException $e) {
             return response()->json(['status' => false, 'errors' => $e->errors()], 422);
         } catch (Exception $e) {
-            return response()->json(['status' => false, 'message' => 'Internal Server Error. '. $e->getMessage()], 500);
+            return response()->json(['status' => false, 'message' => 'Internal Server Error. ' . $e->getMessage()], 500);
         }
     }
 
-    public function list(){
+    public function list()
+    {
         $datas = FormData::all();
-        return view('admin.log',['datas' => $datas]);
+        return view('admin.log', ['datas' => $datas]);
     }
 
 

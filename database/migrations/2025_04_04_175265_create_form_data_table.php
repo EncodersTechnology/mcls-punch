@@ -18,9 +18,9 @@ return new class extends Migration
             $table->string('mcls_email')->nullable();
             $table->string('agency_name')->nullable();
             $table->string('agency_employee_name')->nullable();
-            $table->string('site');
+            $table->unsignedBigInteger('site_id');
+            $table->unsignedBigInteger('resident_id');
             $table->enum('shift', ['morning', 'night']);
-            $table->string('resident_name');
             $table->date('log_date');
             $table->time('log_time');
             $table->text('adls');
@@ -31,6 +31,9 @@ return new class extends Migration
             $table->text('sleep')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
+
+            $table->foreign('site_id')->references('id')->on('sites');
+            $table->foreign('resident_id')->references('id')->on('residents');
         });
     }
 

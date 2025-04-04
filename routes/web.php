@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FormDataController;
+use App\Http\Controllers\ResidentController;
+use App\Http\Controllers\SiteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -19,9 +21,7 @@ Route::get('/', function () {
     return view('auth.login');
 })->name('home');
 
-Route::get('/dashboard', function () {
-    return view('admin.dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard',[FormDataController::class,'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -38,12 +38,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/site/checklist', function () {
         return view('admin.site');
     })->name('site.checklist');
-    Route::get('/log/data', function () {
-        return view('admin.log');
-    })->name('log.data');
-    Route::get('/admin/resident', function () {
-        return view('admin.resident');
-    })->name('admin.resident');
+    Route::get('/log/data',[FormDataController::class, 'list'])->name('log.data');
+    Route::get('/admin/site-resident',[SiteController::class,'index'])->name('admin.resident');
+    
+    Route::resource('sites', SiteController::class);
+    Route::resource('residents', ResidentController::class);
+
 });
 
 require __DIR__.'/auth.php';

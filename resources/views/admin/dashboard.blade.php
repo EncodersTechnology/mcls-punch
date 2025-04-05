@@ -1,25 +1,29 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center relative w-full">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Welcome to MCLS Document Management System! Please select an option to continue.') }}
-            </h2>
-            <div class="flex justify-end items-center gap-3 mb-3">
-                <div>
-                    <select id="site1" name="site1" class="shadow-sm border-primary rounded-2 px-3 py-2 w-64" required>
-                        <option value="" disabled>Select an Option</option>
-                        <option value="form" selected>View Form</option>
-                        <option value="log">View Latest Log</option>
-                    </select>
-                </div>
+<x-slot name="header">
+    <div class="w-full">
+        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight mb-6 text-center">
+            {{ __('Welcome to MCLS Document Management System! Please select an option to continue.') }}
+        </h2>
 
-                <!-- Tailwind Button Styling -->
-                <!-- <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                    Submit
-                </button> -->
-            </div>
-        </div>
-    </x-slot>
+      <div class="flex justify-center gap-4">
+    <button 
+        id="chip-form"
+        class="chip-option active-chip px-4 py-2 rounded-full text-sm font-medium transition transform hover:scale-105 focus:outline-none"
+        data-value="form"
+    >
+        View Form
+    </button>
+
+    <button 
+        id="chip-log"
+        class="chip-option inactive-chip px-4 py-2 rounded-full text-sm font-medium transition transform hover:scale-105 focus:outline-none"
+        data-value="log"
+    >
+        View Latest Log
+    </button>
+</div>
+    </div>
+</x-slot>
     <link href="https://fonts.googleapis.com/css2?family=Muli&family=Rubik:wght@500&display=swap" rel="stylesheet">
     <style>
         #section1 {
@@ -32,6 +36,16 @@
         form label {
             font-weight: bold;
         }
+        .active-chip {
+        background-color: #3B82F6; /* Tailwind's blue-500 */
+        color: white;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    .inactive-chip {
+        background-color: #E5E7EB; /* Tailwind's gray-200 */
+        color: #374151; /* Tailwind's gray-700 */
+    }
     </style>
     <div class="container mx-auto">
         <!-- Section 1: Form Section -->
@@ -193,21 +207,33 @@
         </div>
     </div>
     <script>
-        document.getElementById("site1").addEventListener("change", function() {
-            const formSection = document.getElementById("section1");
-            const logSection = document.getElementById("section2");
+    document.addEventListener('DOMContentLoaded', function () {
+        const chipButtons = document.querySelectorAll('.chip-option');
+        const formSection = document.getElementById("section1");
+        const logSection = document.getElementById("section2");
 
-            if (this.value === "form") {
-                formSection.style.display = "block";
-                logSection.style.display = "none";
-            } else if (this.value === "log") {
-                formSection.style.display = "none";
-                logSection.style.display = "block";
-            } else {
-                formSection.style.display = "none";
-                logSection.style.display = "none";
-            }
+        chipButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                chipButtons.forEach(btn => {
+                    btn.classList.remove('active-chip');
+                    btn.classList.add('inactive-chip');
+                });
+
+                this.classList.remove('inactive-chip');
+                this.classList.add('active-chip');
+
+                const value = this.getAttribute("data-value");
+
+                if (value === "form") {
+                    formSection.classList.remove("hidden");
+                    logSection.classList.add("hidden");
+                } else if (value === "log") {
+                    formSection.classList.add("hidden");
+                    logSection.classList.remove("hidden");
+                }
+            });
         });
+    });
 
         document.getElementById("employeeType").addEventListener("change", function() {
             let mclsFields = document.getElementById("mclsFields");

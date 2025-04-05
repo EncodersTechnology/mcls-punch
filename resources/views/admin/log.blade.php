@@ -17,6 +17,7 @@
             <table class="min-w-full bg-white border border-gray-300 text-left rounded-md" id="residentLogTable">
                 <thead class="text-white bg-gradient-to-r from-blue-500 to-purple-600">
                     <tr>
+                        <th class="py-3 px-6 border-b text-sm font-bold">S.N.</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Employee Type</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Resident Name</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Site of Work</th>
@@ -30,11 +31,15 @@
                     </tr>
                 </thead>
                 <tbody id="tableBody">
+                    @php
+                    $count = 1;
+                    @endphp
                     @foreach($datas as $data)
                     <tr class="text-gray-700 hover:bg-gray-100">
+                        <td class="py-3 px-6 border-b text-sm">{{ $count }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->employee_type }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->mcls_name ? $data->mcls_name : $data->agency_employee_name }}</td>
-                        <td class="py-3 px-6 border-b text-sm">{{ $data->site }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->site->name }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->shift }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->medical }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->behavior }}</td>
@@ -43,6 +48,9 @@
                         <td class="py-3 px-6 border-b text-sm">{{ $data->sleep }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->notes }}</td>
                     </tr>
+                    @php
+                    $count ++;
+                    @endphp
                     @endforeach
                 </tbody>
             </table>

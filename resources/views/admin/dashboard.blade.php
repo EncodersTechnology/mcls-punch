@@ -26,8 +26,8 @@
 </x-slot>
     <link href="https://fonts.googleapis.com/css2?family=Muli&family=Rubik:wght@500&display=swap" rel="stylesheet">
     <style>
-        #section1 {
-            background-image: url('{{ asset(' blur.png') }}');
+        #section1, #latest-table {
+            background-image: url('{{ asset('blur.png') }}');
             background-size: cover;
             background-position: center;
             position: relative;
@@ -147,7 +147,7 @@
                         </select>
                     </div>
                 </div>
-                <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
+                <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md" id="latest-table">
                     @if($form_data)
                     <tbody>
                         <tr>

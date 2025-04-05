@@ -36,9 +36,9 @@
                 <table class="min-w-full bg-gray-800 text-white border border-gray-700">
                     <thead>
                         <tr>
-                            <th class="py-2 px-4 border-b text-left">ID</th>
-                            <th class="py-2 px-4 border-b text-left">Name</th>
-                            <th class="py-2 px-4 border-b text-left">Actions</th>
+                            <th class="py-2 px-4 border-b text-left bg-gray-800 text-white">ID</th>
+                            <th class="py-2 px-4 border-b text-left bg-gray-800 text-white">Name</th>
+                            <th class="py-2 px-4 border-b text-left bg-gray-800 text-white">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -48,7 +48,7 @@
                             <td class="py-2 px-4 border-b">{{ $site->name }}</td>
                             <td class="py-2 px-4 border-b">
                                 <button data-id="{{ $site->id }}" data-name="{{ $site->name }}" class="edit-site-btn text-blue-400 hover:text-blue-600">Edit</button> |
-                                <form action="{{ route('sites.destroy', $site) }}" method="POST" style="display:inline;">
+                                <form action="{{ route('sites.destroy', $site) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this site?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-500 hover:text-red-700">Delete</button>
@@ -69,10 +69,10 @@
                 <table class="min-w-full bg-gray-800 text-white border border-gray-700">
                     <thead>
                         <tr>
-                            <th class="py-2 px-4 text-left">ID</th>
-                            <th class="py-2 px-4 text-left">Name</th>
-                            <th class="py-2 px-4 text-left">Site</th>
-                            <th class="py-2 px-4 text-left">Actions</th>
+                            <th class="py-2 px-4 text-left bg-gray-800 text-white">ID</th>
+                            <th class="py-2 px-4 text-left bg-gray-800 text-white">Name</th>
+                            <th class="py-2 px-4 text-left bg-gray-800 text-white">Site</th>
+                            <th class="py-2 px-4 text-left bg-gray-800 text-white">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,7 +83,7 @@
                             <td class="py-2 px-4 border-b">{{ $resident->site->name }}</td>
                             <td class="py-2 px-4 border-b">
                                 <button data-id="{{ $resident->id }}" data-name="{{ $resident->name }}" data-site="{{ $resident->site->id }}" class="edit-resident-btn text-blue-400 hover:text-blue-600">Edit</button> |
-                                <form action="{{ route('residents.destroy', $resident) }}" method="POST" style="display:inline;">
+                                <form action="{{ route('residents.destroy', $resident) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this resident?');">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="text-red-500 hover:text-red-700">Delete</button>

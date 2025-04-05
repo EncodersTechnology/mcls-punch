@@ -16,7 +16,7 @@ class FormDataController extends Controller
     public function index()
     {
         // return latest form data
-        $form_data = FormData::with('site')->latest()->first();
+        $form_data = FormData::with('site')->orderByDesc('id')->first();
         $sites = Site::all();
         $residents = Resident::all();
         return view('admin.dashboard', ['sites' => $sites, 'residents' => $residents, 'form_data' => $form_data]);
@@ -33,6 +33,7 @@ class FormDataController extends Controller
                 return $query->where('resident_id', $resident_id);
             })
             ->with('site')
+            ->orderByDesc('id')
             ->first();
 
         return response()->json(['data'=>$form_data]);

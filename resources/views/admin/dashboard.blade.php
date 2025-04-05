@@ -120,7 +120,7 @@
                     <div style="display: flex; flex-direction: column;">
                         <label for="filter_site" class="required">Site of Work:</label>
                         <select id="filter_site" name="filter_site_id" required class="filter_site_select">
-                            <option value="" selected disabled>All Site</option>
+                            <option value="" selected>All Site</option>
                             @foreach($sites as $site)
                             <option value="{{$site->id}}">{{$site->name}}</option>
                             @endforeach
@@ -129,7 +129,7 @@
                     <div style="display: flex; flex-direction: column;">
                         <label for="filter_resident_select" class="required">Resident:</label>
                         <select id="filter_resident_select" name="filter_resident_id" required>
-                            <option value="" selected disabled>All Resident</option>
+                            <option value="" selected>All Resident</option>
                         </select>
                     </div>
                 </div>

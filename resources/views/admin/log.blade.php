@@ -34,7 +34,7 @@
                     <tr class="text-gray-700 hover:bg-gray-100">
                         <td class="py-3 px-6 border-b text-sm">{{ $data->employee_type }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->mcls_name ? $data->mcls_name : $data->agency_employee_name }}</td>
-                        <td class="py-3 px-6 border-b text-sm">{{ $data->site }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->site->name }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->shift }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->medical }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->behavior }}</td>

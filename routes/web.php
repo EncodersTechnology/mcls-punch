@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FormDataController;
 use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\SiteUsersController;
 
 /*
 |--------------------------------------------------------------------------
@@ -47,6 +48,8 @@ Route::middleware('auth')->group(function () {
     Route::post('get-residents', [ResidentController::class, 'getResidents'])->name('get.residents');
 
     Route::get('form-data-query',[FormDataController::class, 'query']);
+
+    Route::get('/acess/management', [SiteUsersController::class, 'index'])->name('site.access.index');
 
 });
 

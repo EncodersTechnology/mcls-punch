@@ -25,6 +25,9 @@
                     <x-nav-link :href="route('admin.resident')" :active="request()->routeIs('admin.resident')">
                         {{ __('Admin View') }}
                     </x-nav-link>    
+                    <x-nav-link :href="route('site.access.index')" :active="request()->routeIs('site.access.index')">
+                        {{ __('Access Management') }}
+                    </x-nav-link>    
                 </div>
             </div>
 

@@ -41,7 +41,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/view/site/checklist', [SiteChecklistController::class, 'index'])->name('site.checklist');
 
-    Route::get('/log/data',[FormDataController::class, 'list'])->name('log.data');
+    Route::get('employee/log/data',[FormDataController::class, 'list'])->name('employee.log.data');
+    Route::get('employee/log/form',[FormDataController::class, 'residentform'])->name('employee.log.form');
     
     Route::post('get-residents', [ResidentController::class, 'getResidents'])->name('get.residents');
 
@@ -52,6 +53,8 @@ Route::middleware('auth')->group(function () {
 Route::group(['prefix' => 'admin','middleware' => ['auth', 'admin']], function() {
 
     Route::get('/dashboard',[FormDataController::class,'index'])->name('admin.dashboard');
+
+    Route::get('/log/data',[FormDataController::class, 'adminlog'])->name('admin.log.data');
 
     Route::get('/site-resident',[SiteController::class,'index'])->name('admin.resident');
 

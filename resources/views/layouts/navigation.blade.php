@@ -12,12 +12,23 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    @if(auth()->user()->usertype == 'employee')
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('log.data')" :active="request()->routeIs('log.data')">
+                    @endif
+                    @if(auth()->user()->usertype == 'admin')
+                    <x-nav-link :href="route('admin.log.data')" :active="request()->routeIs('admin.log.data')">
                         {{ __('Resident Log Data') }}
                     </x-nav-link>    
+                    @else
+                    <x-nav-link :href="route('employee.log.data')" :active="request()->routeIs('employee.log.data')">
+                        {{ __('Resident Log Data') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('employee.log.form')" :active="request()->routeIs('employee.log.form')">
+                        {{ __('Site Log Form') }}
+                    </x-nav-link>
+                    @endif
                     <x-nav-link :href="route('site.checklist')" :active="request()->routeIs('site.checklist')">
                         {{ __('Site Checklist') }}
                     </x-nav-link>  

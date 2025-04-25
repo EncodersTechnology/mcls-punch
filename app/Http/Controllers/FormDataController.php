@@ -24,7 +24,7 @@ class FormDataController extends Controller
         $site_residents = DB::table('residents')->where('site_id', $site->site_id)->get();
 
         $residents = Resident::all();
-        return view('admin.dashboard', ['sites' => $sites, 'site'=>$site,'site_residents'=>$site_residents, 'residents' => $residents, 'form_data' => $form_data]);
+        return view('admin.new-dashboard', ['sites' => $sites, 'site'=>$site,'site_residents'=>$site_residents, 'residents' => $residents, 'form_data' => $form_data]);
     }
 
     public function query(Request $request)
@@ -45,7 +45,6 @@ class FormDataController extends Controller
 
     public function store(Request $request)
     {
-        dd($request->all());
         try {
             $validated = $request->validate([
                 'employee_type' => ['required', Rule::in(['mcls', 'agency'])],
@@ -66,8 +65,6 @@ class FormDataController extends Controller
                 'resident_id' => ['required', 'exists:residents,id'],
 
                 'shift' => ['required', Rule::in(['morning', 'night'])],
-                'log_date' => 'required|date',
-                'log_time' => 'required',
                 'adls' => 'required|string',
                 'medical' => 'required|string',
                 'behavior' => 'required|string',
@@ -76,9 +73,11 @@ class FormDataController extends Controller
                 'sleep' => 'nullable|string',
                 'notes' => 'nullable|string',
             ]);
-            $validated['log_time'] = date("H:i:s", strtotime($validated['log_time']));
+            $validated['log_date'] = now()->toDateString(); // returns 'YYYY-MM-DD'
+            $validated['log_time'] = now()->format('H:i:s'); // returns 'HH:MM:SS'
+            $site = DB::table('site_users')->where('user_id', Auth::id())->first();
+            $validated['site_id'] = $site->site_id;
             $form_data = FormData::create($validated);
-            $form_data->load('site');
             return response()->json(['status' => true, 'data' => $form_data], 201);
         } catch (ValidationException $e) {
             return response()->json(['status' => false, 'errors' => $e->errors()], 422);
@@ -89,10 +88,40 @@ class FormDataController extends Controller
 
     public function list()
     {
+        $site = DB::table('site_users')->where('user_id', Auth::id())->first();
+        $datas = FormData::where('site_id', $site->site_id)->get();
+        return view('employee.log', ['datas' => $datas]);
+    }
+
+    public function adminlog(){
         $datas = FormData::all();
         return view('admin.log', ['datas' => $datas]);
     }
 
+    public function residentform(){
+        $site = DB::table('site_users')->where('user_id', Auth::id())->first();
+        $checklistTypes = DB::table('xwalk_site_checklist_type')
+                            ->where('is_deleted', 0)
+                            ->where('status', 1)
+                            ->get();
+        $siteChecklistSettings = DB::table('site_checklist_settings as s')
+                            ->join('xwalk_site_checklist_type as x', 's.site_checklist_id', '=', 'x.id')
+                            ->select(
+                                's.*',
+                                'x.checklist_type',
+                                'x.group_name',
+                                'x.task_name'
+                            )
+                            ->where('s.is_deleted', 0)
+                            ->where('s.status', 1)
+                            ->where('x.is_deleted', 0)
+                            ->where('x.status', 1)
+                            ->get();
+        return view('employee.logform', [
+            'checklistTypes' => $checklistTypes,
+            'siteChecklistSettings' => $siteChecklistSettings,
+        ]);
+    }
 
     public function show($id)
     {

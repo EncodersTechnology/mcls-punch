@@ -6,7 +6,8 @@
             </h2>
             <div class="flex justify-end items-center gap-3 mb-3">
                 <div>
-                    <select id="site1" name="site1" class="shadow-sm border-primary rounded-2 px-3 py-2 w-64" required>
+                    <select id="site1" name="site1" class="shadow-sm border-primary rounded-2 px-3 py-2 w-64"
+                        required>
                         <option value="" disabled>Select an Option</option>
                         <option value="form" selected>View Resident Log Form</option>
                         <option value="log">View Latest Log</option>
@@ -39,7 +40,8 @@
             <div id="errorMessages"></div>
             <form id="logForm" class="space-y-4" method="POST" action="{{ route('formdata.store') }}">
                 @csrf
-                <h2>Please fill out the form below. Note: The fields marked with <span style="color:red">*</span> are required.</h2>
+                <h2>Please fill out the form below. Note: The fields marked with <span style="color:red">*</span> are
+                    required.</h2>
                 <label for="employeeType" class="required">Employee Type:</label>
                 <select id="employeeType" name="employee_type" required>
                     <option value="">Select Employee Type</option>
@@ -52,7 +54,9 @@
                     <input type="text" id="mclsName" name="mcls_name" required placeholder="John Doe">
 
                     <label for="mclsEmail" class="required">MCLS Email:</label>
-                    <input type="email" id="mclsEmail" name="mcls_email" pattern="^[a-zA-Z0-9._%+-]+@multiculturalcls\.org$" placeholder="name@multiculturalcls.org" required>
+                    <input type="email" id="mclsEmail" name="mcls_email"
+                        pattern="^[a-zA-Z0-9._%+-]+@multiculturalcls\.org$" placeholder="name@multiculturalcls.org"
+                        required>
                 </div>
 
                 <div id="agencyFields" style="display: none;">
@@ -60,7 +64,8 @@
                     <input type="text" id="agencyName" name="agency_name" required placeholder="Agency ABC">
 
                     <label for="agencyEmployeeName" class="required">Full Name:</label>
-                    <input type="text" id="agencyEmployeeName" name="agency_employee_name" required placeholder="John Doe">
+                    <input type="text" id="agencyEmployeeName" name="agency_employee_name" required
+                        placeholder="John Doe">
                 </div>
 
                 <label for="shift" class="required">Select Shift:</label>
@@ -71,10 +76,10 @@
                 </select>
                 <input type="hidden" name="site_id" id="site_id" value="{{ $site->site_id }}">
                 <label for="resident_select" class="required">Select Resident:</label>
-                <select  name="resident_id" required>
+                <select name="resident_id" required>
                     <option value="" selected disabled>Select Resident</option>
                     @foreach ($site_residents as $data)
-                    <option value="{{$data->id}}" >{{$data->name}}</option>
+                        <option value="{{ $data->id }}">{{ $data->name }}</option>
                     @endforeach
                 </select>
 
@@ -102,7 +107,9 @@
                 <label for="notes" class="required">Additional Notes:</label>
                 <textarea id="notes" name="notes" required placeholder="E.g., No concerns noted today..."></textarea>
 
-                <button class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300" type="submit">Submit Log</button>
+                <button
+                    class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300"
+                    type="submit">Submit Log</button>
             </form>
         </div>
 
@@ -110,79 +117,89 @@
         <div id="section2" class="section2 gradient-two p-6 rounded-lg shadow-lg overflow-auto hidden">
             <div class="mew">
                 <h1 class="text-2xl font-semibold mb-4">Latest Log Entry</h1>
-                @if(auth()->user()->usertype == 'admin')
-                <div class="flex gap-4">
-                    <div style="display: flex; flex-direction: column;">
-                        <label for="filter_site" class="required">Site of Work:</label>
-                        <select id="filter_site" name="filter_site_id" required class="filter_site_select">
-                            <option value="" selected disabled>All Site</option>
-                            @foreach($sites as $site)
-                            <option value="{{$site->id}}">{{$site->name}}</option>
-                            @endforeach
-                        </select>
+                @if (auth()->user()->usertype == 'admin')
+                    <div class="flex gap-4">
+                        <div style="display: flex; flex-direction: column;">
+                            <label for="filter_site" class="required">Site of Work:</label>
+                            <select id="filter_site" name="filter_site_id" required class="filter_site_select">
+                                <option value="" selected disabled>All Site</option>
+                                @foreach ($sites as $site)
+                                    <option value="{{ $site->id }}">{{ $site->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div style="display: flex; flex-direction: column;">
+                            <label for="filter_resident_select" class="required">Resident:</label>
+                            <select id="filter_resident_select" name="filter_resident_id" required>
+                                <option value="" selected disabled>All Resident</option>
+                            </select>
+                        </div>
                     </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <label for="filter_resident_select" class="required">Resident:</label>
-                        <select id="filter_resident_select" name="filter_resident_id" required>
-                            <option value="" selected disabled>All Resident</option>
-                        </select>
-                    </div>
-                </div>
                 @endif
                 <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
-                    @if($form_data)
-                    <tbody>
-                        <tr>
-                            <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
-                            <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Employee Type:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_employeeType">{{ $form_data->employee_type }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Full Name:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_fullName">{{ $form_data->mcls_name ? $form_data->mcls_name : $form_data->agency_employee_name }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Site of Work:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_site">{{ $form_data->site->name }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Shift:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_shift">{{ $form_data->shift }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Medical and Health Information:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_medical">{{ $form_data->medical }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Behavior and Emotional Well-being:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_behavior">{{ $form_data->behavior }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Activities and Engagement:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_activities">{{ $form_data->activities }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Nutritional Intake:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_nutrition">{{ $form_data->nutrition }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Sleep Patterns:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_sleep">{{ $form_data->sleep }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Additional Notes:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_notes">{{ $form_data->notes }}</td>
-                        </tr>
-                    </tbody>
+                    @if ($form_data)
+                        <tbody>
+                            <tr>
+                                <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
+                                <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-semibold text-gray-700">Employee Type:</td>
+                                <td class="p-4 text-sm text-gray-900" id="display_employeeType">
+                                    {{ $form_data->employee_type }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-semibold text-gray-700">Full Name:</td>
+                                <td class="p-4 text-sm text-gray-900" id="display_fullName">
+                                    {{ $form_data->mcls_name ? $form_data->mcls_name : $form_data->agency_employee_name }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-semibold text-gray-700">Site of Work:</td>
+                                <td class="p-4 text-sm text-gray-900" id="display_site">{{ $form_data->site->name }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-semibold text-gray-700">Shift:</td>
+                                <td class="p-4 text-sm text-gray-900" id="display_shift">{{ $form_data->shift }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-semibold text-gray-700">Medical and Health Information:
+                                </td>
+                                <td class="p-4 text-sm text-gray-900" id="display_medical">{{ $form_data->medical }}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-semibold text-gray-700">Behavior and Emotional Well-being:
+                                </td>
+                                <td class="p-4 text-sm text-gray-900" id="display_behavior">
+                                    {{ $form_data->behavior }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-semibold text-gray-700">Activities and Engagement:</td>
+                                <td class="p-4 text-sm text-gray-900" id="display_activities">
+                                    {{ $form_data->activities }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-semibold text-gray-700">Nutritional Intake:</td>
+                                <td class="p-4 text-sm text-gray-900" id="display_nutrition">
+                                    {{ $form_data->nutrition }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-semibold text-gray-700">Sleep Patterns:</td>
+                                <td class="p-4 text-sm text-gray-900" id="display_sleep">{{ $form_data->sleep }}</td>
+                            </tr>
+                            <tr>
+                                <td class="p-4 text-sm font-semibold text-gray-700">Additional Notes:</td>
+                                <td class="p-4 text-sm text-gray-900" id="display_notes">{{ $form_data->notes }}</td>
+                            </tr>
+                        </tbody>
                     @else
-                    <tbody>
-                        <tr>
-                            <td colspan="2" class="p-4 text-center text-gray-700">No log data found.</td>
-                        </tr>
-                    </tbody>
+                        <tbody>
+                            <tr>
+                                <td colspan="2" class="p-4 text-center text-gray-700">No log data found.</td>
+                            </tr>
+                        </tbody>
                     @endif
                 </table>
             </div>
@@ -282,7 +299,8 @@
 
         function updateTableWithData(data) {
             document.getElementById('display_employeeType').textContent = data.employee_type || 'N/A';
-            document.getElementById('display_fullName').textContent = data.mcls_name ? data.mcls_name : data.agency_employee_name || 'N/A';
+            document.getElementById('display_fullName').textContent = data.mcls_name ? data.mcls_name : data
+                .agency_employee_name || 'N/A';
             document.getElementById('display_site').textContent = data.site ? data.site.name : 'N/A';
             document.getElementById('display_shift').textContent = data.shift || 'N/A';
             document.getElementById('display_medical').textContent = data.medical || 'N/A';

@@ -33,8 +33,8 @@
                         {{ __('Site Checklist') }}
                     </x-nav-link>  
                     @if(auth()->user()->usertype == 'admin')
-                        <x-nav-link :href="route('admin.resident')" :active="request()->routeIs('admin.site.checklist')">
-                            {{ __('Sites Checklist Management') }}
+                        <x-nav-link :href="route('admin.checklist.management')" :active="request()->routeIs('admin.checklist.management')">
+                            {{ __('Sites Checklist Settings') }}
                         </x-nav-link>  
                         <x-nav-link :href="route('admin.resident')" :active="request()->routeIs('admin.resident')">
                             {{ __('Sites and Residents') }}

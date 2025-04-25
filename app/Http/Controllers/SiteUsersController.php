@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Site;
 use App\Models\SiteUsers;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class SiteUsersController extends Controller
@@ -12,7 +14,9 @@ class SiteUsersController extends Controller
      */
     public function index()
     {
-        //
+        $users = User::where('usertype','!=','admin')->with('site')->get();
+        $sites = Site::all();
+        return view('admin.users.index',compact('users','sites'));
     }
 
     /**

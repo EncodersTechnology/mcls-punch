@@ -6,6 +6,7 @@ use App\Http\Controllers\FormDataController;
 use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SiteUsersController;
+use App\Http\Controllers\SiteChecklistController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,9 +23,11 @@ Route::get('/', function () {
     return view('auth.login');
 })->name('home');
 
-Route::get('/dashboard',[FormDataController::class,'index'])->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard',[FormDataController::class,'index'])->name('dashboard');
+
 
 Route::middleware('auth')->group(function () {
+
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
@@ -36,21 +39,26 @@ Route::middleware('auth')->group(function () {
     Route::put('/form/data/{id}', [FormDataController::class, 'update'])->name('formdata.update');
     Route::delete('/form/data/{id}', [FormDataController::class, 'destroy'])->name('formdata.destroy');
 
-    Route::get('/site/checklist', function () {
-        return view('admin.site');
-    })->name('site.checklist');
-    Route::get('/log/data',[FormDataController::class, 'list'])->name('log.data');
-    Route::get('/admin/site-resident',[SiteController::class,'index'])->name('admin.resident');
-    
-    Route::resource('sites', SiteController::class);
-    Route::resource('residents', ResidentController::class);
+    Route::get('/view/site/checklist', [SiteChecklistController::class, 'index'])->name('site.checklist');
 
+    Route::get('/log/data',[FormDataController::class, 'list'])->name('log.data');
+    
     Route::post('get-residents', [ResidentController::class, 'getResidents'])->name('get.residents');
 
     Route::get('form-data-query',[FormDataController::class, 'query']);
 
-    Route::get('/acess/management', [SiteUsersController::class, 'index'])->name('site.access.index');
+});
 
+Route::group(['prefix' => 'admin','middleware' => ['auth', 'admin']], function() {
+
+    Route::get('/dashboard',[FormDataController::class,'index'])->name('admin.dashboard');
+
+    Route::get('/site-resident',[SiteController::class,'index'])->name('admin.resident');
+
+    Route::resource('sites', SiteController::class);
+    Route::resource('residents', ResidentController::class);
+
+    Route::get('/acess/management', [SiteUsersController::class, 'index'])->name('site.access.index');
 });
 
 require __DIR__.'/auth.php';

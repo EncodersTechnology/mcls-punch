@@ -12,7 +12,6 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                
                 <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
@@ -22,12 +21,18 @@
                     <x-nav-link :href="route('site.checklist')" :active="request()->routeIs('site.checklist')">
                         {{ __('Site Checklist') }}
                     </x-nav-link>  
-                    <x-nav-link :href="route('admin.resident')" :active="request()->routeIs('admin.resident')">
-                        {{ __('Admin View') }}
-                    </x-nav-link>    
-                    <x-nav-link :href="route('site.access.index')" :active="request()->routeIs('site.access.index')">
-                        {{ __('Access Management') }}
-                    </x-nav-link>    
+                    @if(auth()->user()->usertype == 'admin')
+                        <x-nav-link :href="route('admin.resident')" :active="request()->routeIs('admin.site.checklist')">
+                            {{ __('Sites Checklist Management') }}
+                        </x-nav-link>  
+                        <x-nav-link :href="route('admin.resident')" :active="request()->routeIs('admin.resident')">
+                            {{ __('Sites and Residents') }}
+                        </x-nav-link>   
+                        <x-nav-link :href="route('site.access.index')" :active="request()->routeIs('site.access.index')">
+                            {{ __('Access Management') }}
+                        </x-nav-link>    
+                    @endif
+
                 </div>
             </div>
 

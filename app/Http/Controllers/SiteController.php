@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Resident;
 use App\Models\Site;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class SiteController extends Controller
 {
@@ -34,11 +35,40 @@ class SiteController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
         ]);
-        
-        Site::create($validated);
+
+        $site = Site::create($validated);
+
+        $checklistTypes = DB::table('xwalk_site_checklist_type')->get();
+
+        foreach ($checklistTypes as $type) {
+            DB::table('site_checklist_settings')->insert([
+                'site_id' => $site->id,
+                'site_checklist_id' => $type->id,
+                'sun_enabled_bool' => 1,
+                'mon_enabled_bool' => 1,
+                'tue_enabled_bool' => 1,
+                'wed_enabled_bool' => 1,
+                'thu_enabled_bool' => 1,
+                'fri_enabled_bool' => 1,
+                'sat_enabled_bool' => 1,
+                'created_by' => auth()->id(),
+                'updated_by' => null,
+                'deleted_by' => null,
+                'is_deleted' => 0,
+                'status' => 1,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
         $sites = Site::all();
         $residents = Resident::all();
-        return redirect()->route('admin.resident')->with(['sites' => $sites, 'residents' => $residents, 'success' => 'Site Created Successfully']);
+
+        return redirect()->route('admin.resident')->with([
+            'sites' => $sites,
+            'residents' => $residents,
+            'success' => 'Site Created Successfully'
+        ]);
     }
 
     /**

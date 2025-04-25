@@ -9,6 +9,8 @@ use App\Models\Site;
 use Exception;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
+use Auth;
 
 class FormDataController extends Controller
 {
@@ -18,8 +20,11 @@ class FormDataController extends Controller
         // return latest form data
         $form_data = FormData::with('site')->latest()->first();
         $sites = Site::all();
+        $site = DB::table('site_users')->where('user_id', Auth::id())->first();
+        $site_residents = DB::table('residents')->where('site_id', $site->site_id)->get();
+
         $residents = Resident::all();
-        return view('admin.dashboard', ['sites' => $sites, 'residents' => $residents, 'form_data' => $form_data]);
+        return view('admin.dashboard', ['sites' => $sites, 'site'=>$site,'site_residents'=>$site_residents, 'residents' => $residents, 'form_data' => $form_data]);
     }
 
     public function query(Request $request)
@@ -40,6 +45,7 @@ class FormDataController extends Controller
 
     public function store(Request $request)
     {
+        dd($request->all());
         try {
             $validated = $request->validate([
                 'employee_type' => ['required', Rule::in(['mcls', 'agency'])],
@@ -57,7 +63,6 @@ class FormDataController extends Controller
                 'agency_name' => 'required_if:employee_type,agency|nullable|string|max:255',
                 'agency_employee_name' => 'required_if:employee_type,agency|nullable|string|max:255',
 
-                'site_id' => ['required', 'exists:sites,id'],
                 'resident_id' => ['required', 'exists:residents,id'],
 
                 'shift' => ['required', Rule::in(['morning', 'night'])],
@@ -72,7 +77,6 @@ class FormDataController extends Controller
                 'notes' => 'nullable|string',
             ]);
             $validated['log_time'] = date("H:i:s", strtotime($validated['log_time']));
-
             $form_data = FormData::create($validated);
             $form_data->load('site');
             return response()->json(['status' => true, 'data' => $form_data], 201);

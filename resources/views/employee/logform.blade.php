@@ -21,70 +21,127 @@
         }
     </style>
 
-    <div class="container mx-auto">
-        <div id="section1" class="section1 gradient-one p-6 rounded-lg shadow-lg overflow-scroll">
-            <div id="errorMessages"></div>
+    <div class="container mx-auto p-6">
+        <div class="bg-white rounded-lg shadow-lg p-8">
+            @if (session('success'))
+            <div class="mb-4 p-4 rounded bg-green-100 text-green-800">
+                {{ session('success') }}
+            </div>
+            @endif
+            @if (session('error'))
+            <div class="mb-4 p-4 rounded bg-red-100 text-red-800">
+                {{ session('error') }}
+            </div>
+            @endif
 
-            <form id="logForm" class="space-y-4" method="POST" action="{{ route('formdata.store') }}">
+            <form id="logForm" class="space-y-6" method="POST" action="{{ route('sitechecklistdata.store') }}">
                 @csrf
 
-                <h2>Please fill out the form below. Note: The fields marked with <span style="color:red">*</span> are required.</h2>
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                    Please fill out the form below. <br>
+                    <span class="text-red-600">*</span> fields are required.
+                </h2>
+
                 <!-- Checklist Type -->
                 <div>
-                    <label for="site_checklist_id">Checklist Type <span style="color:red">*</span></label>
-                    <select name="site_checklist_id" id="site_checklist_id" required class="w-full p-2 border rounded">
+                    <label for="site_checklist_id" class="block text-gray-700 font-medium mb-1">
+                        Checklist Type <span class="text-red-600">*</span>
+                    </label>
+                    <select name="site_checklist_id" id="site_checklist_id" required
+                        class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300">
+                        <option value="" disabled selected required>Select Checklist</option>
                         @foreach ($checklistTypes as $checklist)
-                            <option value="{{ $checklist->id }}">{{ $checklist->task_name }}</option>
+                        <option value="{{ $checklist->id }}">{{ $checklist->task_name }}</option>
                         @endforeach
                     </select>
                 </div>
 
-                <!-- Days (only show if *_enabled_bool is true) -->
-                <div class="grid grid-cols-2 gap-4">
-                    @php
-                        $dayConfigs = [
-                            'sun' => 'Sunday',
-                            'mon' => 'Monday',
-                            'tue' => 'Tuesday',
-                            'wed' => 'Wednesday',
-                            'thu' => 'Thursday',
-                            'fri' => 'Friday',
-                            'sat' => 'Saturday',
-                        ];
-                    @endphp
+                <!-- Days (chip-style toggles) -->
+                @php
+                $dayConfigs = [
+                'sun' => 'Sunday',
+                'mon' => 'Monday',
+                'tue' => 'Tuesday',
+                'wed' => 'Wednesday',
+                'thu' => 'Thursday',
+                'fri' => 'Friday',
+                'sat' => 'Saturday',
+                ];
+                @endphp
 
-                    @foreach ($dayConfigs as $abbr => $dayName)
-                        @php $enabledField = "{$abbr}_enabled_bool"; @endphp
-                        @if (!empty($siteChecklistSettings) && $siteChecklistSettings->$enabledField)
-                            <div>
-                                <label for="{{ $abbr }}_bool">
-                                    <input type="checkbox" name="{{ $abbr }}_bool" id="{{ $abbr }}_bool" value="1" class="mr-2">
-                                    {{ $dayName }}
-                                </label>
-                            </div>
-                        @endif
-                    @endforeach
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Days</label>
+                    <div class="flex flex-wrap gap-2" id="day-toggle-group">
+                        @foreach ($dayConfigs as $abbr => $dayName)
+                        <button type="button"
+                            data-day="{{ $abbr }}"
+                            class="day-toggle px-4 py-2 rounded-full border border-gray-300 bg-gray-100 text-gray-700 hover:bg-blue-100 hover:border-blue-400 transition">
+                            {{ $dayName }}
+                        </button>
+                        <input type="hidden" name="{{ $abbr }}_bool" id="{{ $abbr }}_bool" value="0">
+                        @endforeach
+                    </div>
                 </div>
 
                 <!-- Temperature Value -->
                 <div>
-                    <label for="temp_value">Temperature</label>
-                    <input type="text" name="temp_value" id="temp_value" class="w-full p-2 border rounded" placeholder="Enter temperature">
+                    <label for="temp_value" class="block text-gray-700 font-medium mb-1">Temperature</label>
+                    <input type="text" name="temp_value" id="temp_value"
+                        class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300"
+                        placeholder="Enter temperature">
                 </div>
 
                 <!-- Log Date and Time -->
                 <div>
-                    <label for="log_date_time">Log Date & Time <span style="color:red">*</span></label>
-                    <input type="datetime-local" name="log_date_time" id="log_date_time" required class="w-full p-2 border rounded">
+                    <label for="log_date_time" class="block text-gray-700 font-medium mb-1">
+                        Log Date & Time <span class="text-red-600">*</span>
+                    </label>
+                    <input type="datetime-local" name="log_date_time" id="log_date_time" required
+                        class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300">
                 </div>
 
                 <!-- Submit Button -->
                 <div>
-                    <button class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300" type="submit">
+                    <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-md shadow transition">
                         Submit Log
                     </button>
                 </div>
             </form>
         </div>
     </div>
+
 </x-app-layout>
+
+<script>
+        const checklistSettings = @json($siteChecklistSettings);
+        document.getElementById('site_checklist_id').addEventListener('change', function () {
+    const selectedId = parseInt(this.value);
+
+    // Find the matching setting object
+    const setting = checklistSettings.find(item => item.site_checklist_id == selectedId);
+
+    if (!setting) return;
+
+    const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+
+    days.forEach(day => {
+        const isEnabled = setting[`${day}_enabled_bool`] == 1;
+        const button = document.querySelector(`.day-toggle[data-day="${day}"]`);
+        const input = document.getElementById(`${day}_bool`);
+
+        if (isEnabled) {
+            button.disabled = false;
+            button.classList.remove('opacity-50', 'cursor-not-allowed');
+            input.disabled = false;
+        } else {
+            button.disabled = true;
+            input.disabled = true;
+            input.value = 0;
+
+            button.classList.remove('bg-blue-500', 'text-white', 'border-blue-600');
+            button.classList.add('bg-gray-100', 'text-gray-700', 'border-gray-300', 'opacity-50', 'cursor-not-allowed');
+        }
+    });
+});
+</script>

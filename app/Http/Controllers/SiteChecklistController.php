@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Site;
 use App\Models\SiteChecklist;
+use App\Models\SiteChecklistSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Auth;
@@ -39,6 +41,52 @@ class SiteChecklistController extends Controller
             'night_shift_checklist' => $night_shift_checklist,
         ]);
     }
+
+    public function settings(Request $request)
+    {
+        $sites = Site::all();
+        $selectedSiteId = $request->get('site_id');
+    
+        $day_shift_checklist = collect();
+        $night_shift_checklist = collect();
+    
+        if ($selectedSiteId) {
+            $checklists = DB::table('xwalk_site_checklist_type')->get();
+    
+            $day_shift_checklist = $checklists->where('checklist_type', 'DAY SHIFT CHECKLIST')
+                ->groupBy('group_name');
+    
+            $night_shift_checklist = $checklists->where('checklist_type', 'NIGHT SHIFT CHECKLIST')
+                ->groupBy('group_name');
+    
+            // Optional: preload checklist settings for the site
+        }
+    
+        return view('admin.checklistsettings', compact('sites', 'selectedSiteId', 'day_shift_checklist', 'night_shift_checklist'));
+    }
+
+    public function toggleSetting(Request $request)
+{
+    $data = $request->validate([
+        'site_id' => 'required|integer',
+        'task_id' => 'required|integer',
+        'day' => 'required|string|in:sun,mon,tue,wed,thu,fri,sat',
+        'enabled' => 'required|boolean',
+    ]);
+
+    $setting = SiteChecklistSetting::firstOrCreate([
+        'site_id' => $data['site_id'],
+        'site_checklist_id' => $data['task_id']
+    ]);
+
+    $setting->update([
+        $data['day'] . '_enabled_bool' => $data['enabled']
+    ]);
+
+    return response()->json(['success' => true]);
+}
+
+    
     
     /**
      * Show the form for creating a new resource.
@@ -53,7 +101,7 @@ class SiteChecklistController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        dd($request->all());
     }
 
     /**

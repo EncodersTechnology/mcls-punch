@@ -155,11 +155,13 @@ class SiteChecklistController extends Controller
             'temp_value' => 'nullable|string|max:255',
         ]);
 
+        $site = auth()->user()->site;
+
         $days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
         $existing = DB::table('site_checklist_data')
             ->where('site_checklist_id', $request->site_checklist_id)
+            ->where('site_id',$site->id)
             ->first();
-
         if ($existing) {
             foreach ($days as $day) {
                 $field = $day . '_bool';

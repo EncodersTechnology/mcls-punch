@@ -174,10 +174,10 @@
 
                 // Toggle button styling based on value
                 if (newValue === "1") {
-                    this.classList.add("bg-blue-500", "text-white", "border-blue-600");
+                    this.classList.add("bg-gray-800", "text-white", "border-blue-600");
                     this.classList.remove("bg-gray-100", "text-gray-700", "border-gray-300");
                 } else {
-                    this.classList.remove("bg-blue-500", "text-white", "border-blue-600");
+                    this.classList.remove("bg-gray-800", "text-white", "border-blue-600");
                     this.classList.add("bg-gray-100", "text-gray-700", "border-gray-300");
                 }
             });

@@ -6,7 +6,7 @@
 
                     <!-- Site Dropdown -->
                     <select name="site_id" id="siteDropdown" onchange="this.form.submit()"
-                        class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+                        class="min-w-[150px] px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
                         <option value="">All Sites</option>
                         @foreach ($sites as $site)
                         <option value="{{ $site->id }}" {{ request('site_id') == $site->id ? 'selected' : '' }}>
@@ -17,7 +17,7 @@
 
                     <!-- Resident Dropdown -->
                     <select name="resident_id" id="residentDropdown" onchange="this.form.submit()"
-                        class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+                        class="min-w-[150px] px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
                         <option value="">All Residents</option>
                         @foreach ($residents as $resident)
                         <option value="{{ $resident->id }}" {{ request('resident_id') == $resident->id ? 'selected' : '' }}>

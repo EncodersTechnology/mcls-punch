@@ -124,6 +124,7 @@
             </div>
         </div>
 
+        @if(count($users) > 0)
         {{-- edit user --}}
         <div id="edit-site-modal"
             class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex justify-center items-center">
@@ -176,6 +177,7 @@
                     onclick="closeModal()">Cancel</button>
             </div>
         </div>
+        @endif
     </div>
 
     <script>

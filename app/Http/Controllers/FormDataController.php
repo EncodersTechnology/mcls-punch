@@ -21,7 +21,12 @@ class FormDataController extends Controller
         $form_data = FormData::with('site')->latest()->first();
         $sites = Site::all();
         $site = DB::table('site_users')->where('user_id', Auth::id())->first();
-        $site_residents = DB::table('residents')->where('site_id', $site->site_id)->get();
+        if($site){
+            $site_residents = DB::table('residents')->where('site_id', $site->site_id)->get();
+        }
+        else{
+            $site_residents = [];
+        }
 
         $residents = Resident::all();
         return view('admin.new-dashboard', ['sites' => $sites, 'site'=>$site,'site_residents'=>$site_residents, 'residents' => $residents, 'form_data' => $form_data]);
@@ -89,7 +94,12 @@ class FormDataController extends Controller
     public function list()
     {
         $site = DB::table('site_users')->where('user_id', Auth::id())->first();
+        if($site){
         $datas = FormData::where('site_id', $site->site_id)->get();
+        }
+        else{
+            $datas = [];
+        }
         return view('employee.log', ['datas' => $datas]);
     }
 

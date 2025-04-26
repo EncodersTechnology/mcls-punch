@@ -17,29 +17,35 @@ class SiteChecklistController extends Controller
     public function index()
     {
         $site = auth()->user()->site;
+        if ($site) {
+            $site_id = $site->id;
 
-        $site_id = $site->id;
+            $day_shift_checklist = DB::table('site_checklist_settings')
+                ->select('site_checklist_settings.*', 'xwalk_site_checklist_type.*')
+                ->join('xwalk_site_checklist_type', 'site_checklist_settings.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
+                ->where('site_checklist_settings.site_id', $site_id)
+                ->where('xwalk_site_checklist_type.checklist_type', 'DAY SHIFT CHECKLIST')
+                ->get()
+                ->groupBy('group_name');
 
-        $day_shift_checklist = DB::table('site_checklist_settings')
-            ->select('site_checklist_settings.*', 'xwalk_site_checklist_type.*')
-            ->join('xwalk_site_checklist_type', 'site_checklist_settings.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
-            ->where('site_checklist_settings.site_id', $site_id)
-            ->where('xwalk_site_checklist_type.checklist_type', 'DAY SHIFT CHECKLIST')
-            ->get()
-            ->groupBy('group_name');
+            $night_shift_checklist = DB::table('site_checklist_settings')
+                ->select('site_checklist_settings.*', 'xwalk_site_checklist_type.*')
+                ->join('xwalk_site_checklist_type', 'site_checklist_settings.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
+                ->where('site_checklist_settings.site_id', $site_id)
+                ->where('xwalk_site_checklist_type.checklist_type', 'NIGHT SHIFT CHECKLIST')
+                ->get()
+                ->groupBy('group_name');
 
-        $night_shift_checklist = DB::table('site_checklist_settings')
-            ->select('site_checklist_settings.*', 'xwalk_site_checklist_type.*')
-            ->join('xwalk_site_checklist_type', 'site_checklist_settings.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
-            ->where('site_checklist_settings.site_id', $site_id)
-            ->where('xwalk_site_checklist_type.checklist_type', 'NIGHT SHIFT CHECKLIST')
-            ->get()
-            ->groupBy('group_name');
-
-        $checklist_data = DB::table('site_checklist_data')
-            ->where('site_id', $site_id)
-            ->get()
-            ->keyBy('site_checklist_id');
+            $checklist_data = DB::table('site_checklist_data')
+                ->where('site_id', $site_id)
+                ->get()
+                ->keyBy('site_checklist_id');
+        }
+        else{
+            $day_shift_checklist = [];
+            $night_shift_checklist = [];
+            $checklist_data = [];
+        }
 
         return view('employee.sitechecklist', [
             'day_shift_checklist' => $day_shift_checklist,

@@ -74,7 +74,7 @@
                     <option value="morning">Morning Shift (8:00 AM to 8:00 PM)</option>
                     <option value="night">Night Shift (8:00 PM to 8:00 AM)</option>
                 </select>
-                <input type="hidden" name="site_id" id="site_id" value="{{ $site->site_id }}">
+                <input type="hidden" name="site_id" id="site_id" value="{{ $site ? $site->site_id : null }}">
                 <label for="resident_select" class="required">Select Resident:</label>
                 <select name="resident_id" required>
                     <option value="" selected disabled>Select Resident</option>

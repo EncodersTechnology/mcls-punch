@@ -22,12 +22,12 @@ class DatabaseSeeder extends Seeder
             'usertype' => 'admin'
         ]);
 
-        \App\Models\User::factory()->create([
-            'name' => 'Test Employee User',
-            'email' => 'employee@multiculturalcls.org',
-            'password' => Hash::make('Employee@123'),
-            'usertype' => 'employee'
-        ]);
+        // \App\Models\User::factory()->create([
+        //     'name' => 'Test Employee User',
+        //     'email' => 'employee@multiculturalcls.org',
+        //     'password' => Hash::make('Employee@123'),
+        //     'usertype' => 'employee'
+        // ]);
 
         $this->call([
             XwalkSeeder::class,

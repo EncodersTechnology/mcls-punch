@@ -70,6 +70,10 @@ Route::group(['prefix' => 'admin','middleware' => ['auth', 'admin']], function()
     Route::resource('residents', ResidentController::class);
 
     Route::get('/acess/management', [SiteUsersController::class, 'index'])->name('site.access.index');
+    Route::post('add/user', [SiteUsersController::class, 'store'])->name('user.store');
+    Route::put('user/{id}', [SiteUsersController::class, 'update'])->name('user.update');
+    Route::delete('user/{id}', [SiteUsersController::class, 'destroy'])->name('user.destroy');
+
 });
 
 require __DIR__.'/auth.php';

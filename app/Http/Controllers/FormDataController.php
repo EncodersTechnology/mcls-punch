@@ -109,9 +109,13 @@ class FormDataController extends Controller
     $resident_id = $request->input('resident_id');
 
     $sites = Site::all();
+    if($site_id){
     $residents = Resident::when($site_id, function($query) use ($site_id) {
         $query->where('site_id', $site_id);
     })->get();
+    } else{
+        $residents = [];
+    }
 
     $datas = FormData::query()
         ->when($site_id, function($query) use ($site_id) {

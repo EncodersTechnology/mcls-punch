@@ -39,7 +39,12 @@ class SiteUsersController extends Controller
         // Validate the form data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
+            'email' => [
+                'required',
+                'email',
+                'unique:users,email',
+                'regex:/^[a-zA-Z0-9._%+-]+@multiculturalcls\.org$/'
+            ],
             'password' => 'required|string|min:8|confirmed',  // Ensure password is confirmed
             'site_id' => 'required|exists:sites,id',
         ]);
@@ -95,6 +100,7 @@ class SiteUsersController extends Controller
                 'required',
                 'email',
                 Rule::unique('users')->ignore($user->id), // ignore current user for unique check
+                'regex:/^[a-zA-Z0-9._%+-]+@multiculturalcls\.org$/'
             ],
             'password' => 'nullable|string|min:8|confirmed',  // Allow empty password field if not updating the password
             'site_id' => 'required|exists:sites,id',

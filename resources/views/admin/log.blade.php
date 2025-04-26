@@ -21,7 +21,7 @@
                         <option value="">All Residents</option>
                         @foreach ($residents as $resident)
                         <option value="{{ $resident->id }}" {{ request('resident_id') == $resident->id ? 'selected' : '' }}>
-                            Resident {{ $resident->id }}
+                            {{ $resident->name }}
                         </option>
                         @endforeach
                     </select>
@@ -29,9 +29,9 @@
 
                     <input type="text" id="searchInput" placeholder="Search..."
                         class="px-4 py-2 border rounded-md w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out text-gray-700 placeholder-gray-500">
-                    <button
+                    <!-- <button
                         class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition duration-300 ease-in-out"
-                        id="exportBtn">Export</button>
+                        id="exportBtn">Export</button> -->
             </div>
         </div>
     </x-slot>

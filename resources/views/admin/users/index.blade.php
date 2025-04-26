@@ -44,13 +44,13 @@
                         <td class="py-2 px-4 border-b">{{ $count }}</td>
                         <td class="py-2 px-4 border-b">{{ $user->name }}</td>
                         <td class="py-2 px-4 border-b">{{ $user->email }}</td>
-                        <td class="py-2 px-4 border-b">{{ $user->site->name }}</td>
+                        <td class="py-2 px-4 border-b">{{ $user->site ? $user->site->name : ''}}</td>
                         <td class="flex gap-2">
                             <!-- Edit Button -->
                             <button type="button"
                                 class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
                                 data-id="{{ $user->id }}" data-name="{{ $user->name }}"
-                                data-email="{{ $user->email }}" data-site_id="{{ $user->site_id }}"
+                                data-email="{{ $user->email }}" data-site_id="{{ $user->site->id }}"
                                 onclick="openEditModal(this)">
                                 Edit
                             </button>

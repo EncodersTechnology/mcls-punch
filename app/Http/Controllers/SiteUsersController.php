@@ -8,6 +8,7 @@ use App\Models\SiteUsers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 class SiteUsersController extends Controller
 {
@@ -16,10 +17,10 @@ class SiteUsersController extends Controller
      */
     public function index()
     {
-        $users = User::where('usertype','!=','admin')->with('site')->get();
+        $users = User::where('usertype', '!=', 'admin')->with('site')->get();
         $sites = Site::with('siteUsers')->get();
         // dd($sites);
-        return view('admin.users.index',compact('users','sites'));
+        return view('admin.users.index', compact('users', 'sites'));
     }
 
     /**
@@ -55,7 +56,7 @@ class SiteUsersController extends Controller
             'password' => Hash::make($request->password),
             'usertype' => 'employee',
         ]);
-        
+
         $site = SiteUsers::create([
             'user_id' => $user->id,
             'site_id' => $request->site_id,
@@ -86,11 +87,15 @@ class SiteUsersController extends Controller
      */
     public function update(Request $request, SiteUsers $siteUsers, $id)
     {
-        
+        $user = User::findOrFail($id);
         // Validate the incoming request data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
+            'email' => [
+                'required',
+                'email',
+                Rule::unique('users')->ignore($user->id), // ignore current user for unique check
+            ],
             'password' => 'nullable|string|min:8|confirmed',  // Allow empty password field if not updating the password
             'site_id' => 'required|exists:sites,id',
         ]);
@@ -101,7 +106,6 @@ class SiteUsersController extends Controller
         }
 
         // Find the user to be updated
-        $user = User::findOrFail($id);
 
         // Update the user's basic data
         $user->name = $request->name;
@@ -136,7 +140,7 @@ class SiteUsersController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SiteUsers $siteUsers , $id)
+    public function destroy(SiteUsers $siteUsers, $id)
     {
         $user = User::findOrFail($id);
 

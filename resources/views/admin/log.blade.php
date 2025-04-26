@@ -2,11 +2,36 @@
     <x-slot name="header">
         <div class="flex justify-center items-center mb-6">
             <div class="flex items-center space-x-4">
-                <input type="text" id="searchInput" placeholder="Search..."
-                    class="px-4 py-2 border rounded-md w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out text-gray-700 placeholder-gray-500">
-                <button
-                    class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition duration-300 ease-in-out"
-                    id="exportBtn">Export</button>
+                <form method="GET" action="{{ route('admin.log.data') }}" class="flex items-center space-x-4">
+
+                    <!-- Site Dropdown -->
+                    <select name="site_id" id="siteDropdown" onchange="this.form.submit()"
+                        class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+                        <option value="">All Sites</option>
+                        @foreach ($sites as $site)
+                        <option value="{{ $site->id }}" {{ request('site_id') == $site->id ? 'selected' : '' }}>
+                            {{ $site->name }}
+                        </option>
+                        @endforeach
+                    </select>
+
+                    <!-- Resident Dropdown -->
+                    <select name="resident_id" id="residentDropdown" onchange="this.form.submit()"
+                        class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+                        <option value="">All Residents</option>
+                        @foreach ($residents as $resident)
+                        <option value="{{ $resident->id }}" {{ request('resident_id') == $resident->id ? 'selected' : '' }}>
+                            Resident {{ $resident->id }}
+                        </option>
+                        @endforeach
+                    </select>
+
+
+                    <input type="text" id="searchInput" placeholder="Search..."
+                        class="px-4 py-2 border rounded-md w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out text-gray-700 placeholder-gray-500">
+                    <button
+                        class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition duration-300 ease-in-out"
+                        id="exportBtn">Export</button>
             </div>
         </div>
     </x-slot>
@@ -35,27 +60,28 @@
                 </thead>
                 <tbody id="tableBody">
                     @foreach ($datas as $data)
-                        <tr class="text-gray-700 hover:bg-gray-100">
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->employee_type }}</td>
-                            <td class="py-3 px-6 border-b text-sm">
-                                {{ $data->mcls_name ? $data->mcls_name : $data->agency_employee_name }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->site->name }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->shift }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->medical }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->behavior }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->activities }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->nutrition }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->sleep }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->notes }}</td>
-                            <td>
-                                <button type="button"
-                                    class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
-                                    onclick="openModal('modal-{{ $data->id }}')">View</button>
+                    <tr class="text-gray-700 hover:bg-gray-100">
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->employee_type }}</td>
+                        <td class="py-3 px-6 border-b text-sm">
+                            {{ $data->mcls_name ? $data->mcls_name : $data->agency_employee_name }}
+                        </td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->site->name }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->shift }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->medical }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->behavior }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->activities }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->nutrition }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->sleep }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->notes }}</td>
+                        <td>
+                            <button type="button"
+                                class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
+                                onclick="openModal('modal-{{ $data->id }}')">View</button>
 
-                                @include('admin.logPopUp', ['data' => $data])
-                            </td>
+                            @include('admin.logPopUp', ['data' => $data])
+                        </td>
 
-                        </tr>
+                    </tr>
                     @endforeach
                 </tbody>
             </table>

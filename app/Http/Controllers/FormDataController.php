@@ -103,10 +103,27 @@ class FormDataController extends Controller
         return view('employee.log', ['datas' => $datas]);
     }
 
-    public function adminlog(){
-        $datas = FormData::all();
-        return view('admin.log', ['datas' => $datas]);
-    }
+    public function adminlog(Request $request)
+{
+    $site_id = $request->input('site_id');
+    $resident_id = $request->input('resident_id');
+
+    $sites = Site::all();
+    $residents = Resident::when($site_id, function($query) use ($site_id) {
+        $query->where('site_id', $site_id);
+    })->get();
+
+    $datas = FormData::query()
+        ->when($site_id, function($query) use ($site_id) {
+            $query->where('site_id', $site_id);
+        })
+        ->when($resident_id, function($query) use ($resident_id) {
+            $query->where('resident_id', $resident_id);
+        })
+        ->get();
+
+    return view('admin.log', compact('datas', 'sites', 'residents', 'site_id', 'resident_id'));
+}
 
     public function residentform(){
         $site = DB::table('site_users')->where('user_id', Auth::id())->first();

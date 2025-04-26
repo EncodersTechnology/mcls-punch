@@ -17,9 +17,27 @@
     </style>
     <div class="container mx-auto mt-8">
         @if (session('success'))
-            <div class="bg-green-500 text-white p-4 mb-4 rounded">
-                {{ session('success') }}
-            </div>
+        <div class="bg-green-500 text-white p-4 mb-4 rounded">
+            {{ session('success') }}
+        </div>
+        @endif
+
+        {{-- Error Message --}}
+        @if (session('error'))
+        <div class="bg-red-500 text-white p-4 mb-4 rounded">
+            {{ session('error') }}
+        </div>
+        @endif
+
+        {{-- Validation Errors --}}
+        @if ($errors->any())
+        <div class="bg-red-500 text-white p-4 mb-4 rounded">
+            <ul class="list-disc pl-5">
+                @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
         @endif
 
         <div class="flex justify-between mb-4">
@@ -37,40 +55,40 @@
             </thead>
             <tbody>
                 @php
-                    $count = 1;
+                $count = 1;
                 @endphp
                 @foreach ($users as $user)
-                    <tr class="odd:bg-gray-700 even:bg-gray-600">
-                        <td class="py-2 px-4 border-b">{{ $count }}</td>
-                        <td class="py-2 px-4 border-b">{{ $user->name }}</td>
-                        <td class="py-2 px-4 border-b">{{ $user->email }}</td>
-                        <td class="py-2 px-4 border-b">{{ $user->site ? $user->site->name : ''}}</td>
-                        <td class="flex gap-2">
-                            <!-- Edit Button -->
-                            <button type="button"
-                                class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
-                                data-id="{{ $user->id }}" data-name="{{ $user->name }}"
-                                data-email="{{ $user->email }}" data-site_id="{{ $user->site->id }}"
-                                onclick="openEditModal(this)">
-                                Edit
+                <tr class="odd:bg-gray-700 even:bg-gray-600">
+                    <td class="py-2 px-4 border-b">{{ $count }}</td>
+                    <td class="py-2 px-4 border-b">{{ $user->name }}</td>
+                    <td class="py-2 px-4 border-b">{{ $user->email }}</td>
+                    <td class="py-2 px-4 border-b">{{ $user->site ? $user->site->name : ''}}</td>
+                    <td class="flex gap-2">
+                        <!-- Edit Button -->
+                        <button type="button"
+                            class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
+                            data-id="{{ $user->id }}" data-name="{{ $user->name }}"
+                            data-email="{{ $user->email }}" data-site_id="{{ $user->site->id }}"
+                            onclick="openEditModal(this)">
+                            Edit
+                        </button>
+
+                        <!-- Delete Form -->
+                        <form action="{{ route('user.destroy', $user->id) }}" method="POST"
+                            onsubmit="return confirm('Are you sure You want to delete this user?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                class="bg-red-500 text-white px-3 py-1 text-sm rounded hover:bg-red-600">
+                                Delete
                             </button>
+                        </form>
+                    </td>
 
-                            <!-- Delete Form -->
-                            <form action="{{ route('user.destroy', $user->id) }}" method="POST"
-                                onsubmit="return confirm('Are you sure You want to delete this user?');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit"
-                                    class="bg-red-500 text-white px-3 py-1 text-sm rounded hover:bg-red-600">
-                                    Delete
-                                </button>
-                            </form>
-                        </td>
-
-                    </tr>
-                    @php
-                        $count++;
-                    @endphp
+                </tr>
+                @php
+                $count++;
+                @endphp
                 @endforeach
             </tbody>
         </table>
@@ -112,7 +130,7 @@
                             class="mt-1 block w-full border border-gray-500 text-white bg-gray-800 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="" disabled selected>Select Site</option>
                             @foreach ($sites as $site)
-                                <option value="{{ $site->id }}">{{ $site->name }}</option>
+                            <option value="{{ $site->id }}">{{ $site->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -163,9 +181,9 @@
                             class="mt-1 block w-full border border-gray-500 text-white bg-gray-800 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                             <option value="" disabled>Select Site</option>
                             @foreach ($sites as $site)
-                                <option value="{{ $site->id }}" @if ($site->id == old('site_id', $site->site_id)) selected @endif>
-                                    {{ $site->name }}
-                                </option>
+                            <option value="{{ $site->id }}" @if ($site->id == old('site_id', $site->site_id)) selected @endif>
+                                {{ $site->name }}
+                            </option>
                             @endforeach
                         </select>
                     </div>

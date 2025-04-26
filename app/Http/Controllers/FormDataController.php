@@ -144,6 +144,7 @@ class FormDataController extends Controller
                             ->where('s.status', 1)
                             ->where('x.is_deleted', 0)
                             ->where('x.status', 1)
+                            ->where('site_id',$site->site_id)
                             ->get();
         return view('employee.logform', [
             'checklistTypes' => $checklistTypes,

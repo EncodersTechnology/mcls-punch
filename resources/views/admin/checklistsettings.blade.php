@@ -66,7 +66,14 @@
                     const isChecked = e.target.checked;
                     const siteId = "{{ $selectedSiteId }}";
 
-                    await fetch("{{ route('admin.settings.toggle') }}", {
+                    @php
+                    $toggleUrl = route('admin.settings.toggle');
+                    if (app() -> environment('production')) {
+                        $toggleUrl = str_replace('http://', 'https://', $toggleUrl);
+                    }
+                    @endphp
+
+                    await fetch("{{ $toggleUrl }}", {
                             method: "POST",
                             headers: {
                                 "Content-Type": "application/json",

@@ -29,9 +29,15 @@
                         {{ __('Site Log Form') }}
                     </x-nav-link>
                     @endif
+                    @if(auth()->user()->usertype == 'admin')
+                    <x-nav-link :href="route('admin.site.checklist')" :active="request()->routeIs('admin.site.checklist')">
+                        {{ __('Site Checklist') }}
+                    </x-nav-link>  
+                    @else
                     <x-nav-link :href="route('site.checklist')" :active="request()->routeIs('site.checklist')">
                         {{ __('Site Checklist') }}
                     </x-nav-link>  
+                    @endif
                     @if(auth()->user()->usertype == 'admin')
                         <x-nav-link :href="route('admin.checklist.management')" :active="request()->routeIs('admin.checklist.management')">
                             {{ __('Sites Checklist Settings') }}

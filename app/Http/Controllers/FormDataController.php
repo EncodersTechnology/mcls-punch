@@ -103,7 +103,8 @@ class FormDataController extends Controller
         $checklistTypes = DB::table('xwalk_site_checklist_type')
                             ->where('is_deleted', 0)
                             ->where('status', 1)
-                            ->get();
+                            ->get()->groupBy('checklist_type');
+                            
         $siteChecklistSettings = DB::table('site_checklist_settings as s')
                             ->join('xwalk_site_checklist_type as x', 's.site_checklist_id', '=', 'x.id')
                             ->select(

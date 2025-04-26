@@ -34,6 +34,16 @@
             </div>
             @endif
 
+            @if ($errors->any())
+            <div class="mb-4 p-4 rounded bg-red-100 text-red-800">
+                <ul class="list-disc pl-5">
+                    @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+            @endif
+
             <form id="logForm" class="space-y-6" method="POST" action="{{ route('sitechecklistdata.store') }}">
                 @csrf
 
@@ -49,12 +59,17 @@
                     </label>
                     <select name="site_checklist_id" id="site_checklist_id" required
                         class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300">
-                        <option value="" disabled selected required>Select Checklist</option>
-                        @foreach ($checklistTypes as $checklist)
-                        <option value="{{ $checklist->id }}">{{ $checklist->task_name }}</option>
+                        <option value="" disabled selected>Select Checklist</option>
+                        @foreach ($checklistTypes as $type => $items)
+                        <optgroup label="{{ $type }}">
+                            @foreach ($items as $checklist)
+                            <option value="{{ $checklist->id }}">{{ $checklist->task_name }}</option>
+                            @endforeach
+                        </optgroup>
                         @endforeach
                     </select>
                 </div>
+
 
                 <!-- Days (chip-style toggles) -->
                 @php
@@ -114,34 +129,58 @@
 </x-app-layout>
 
 <script>
-        const checklistSettings = @json($siteChecklistSettings);
-        document.getElementById('site_checklist_id').addEventListener('change', function () {
-    const selectedId = parseInt(this.value);
+    const checklistSettings = @json($siteChecklistSettings);
+    document.getElementById('site_checklist_id').addEventListener('change', function() {
+        const selectedId = parseInt(this.value);
 
-    // Find the matching setting object
-    const setting = checklistSettings.find(item => item.site_checklist_id == selectedId);
+        // Find the matching setting object
+        const setting = checklistSettings.find(item => item.site_checklist_id == selectedId);
 
-    if (!setting) return;
+        if (!setting) return;
 
-    const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+        const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
 
-    days.forEach(day => {
-        const isEnabled = setting[`${day}_enabled_bool`] == 1;
-        const button = document.querySelector(`.day-toggle[data-day="${day}"]`);
-        const input = document.getElementById(`${day}_bool`);
+        days.forEach(day => {
+            const isEnabled = setting[`${day}_enabled_bool`] == 1;
+            const button = document.querySelector(`.day-toggle[data-day="${day}"]`);
+            const input = document.getElementById(`${day}_bool`);
 
-        if (isEnabled) {
-            button.disabled = false;
-            button.classList.remove('opacity-50', 'cursor-not-allowed');
-            input.disabled = false;
-        } else {
-            button.disabled = true;
-            input.disabled = true;
-            input.value = 0;
+            if (isEnabled) {
+                button.disabled = false;
+                button.classList.remove('opacity-50', 'cursor-not-allowed');
+                input.disabled = false;
+            } else {
+                button.disabled = true;
+                input.disabled = true;
+                input.value = 0;
 
-            button.classList.remove('bg-blue-500', 'text-white', 'border-blue-600');
-            button.classList.add('bg-gray-100', 'text-gray-700', 'border-gray-300', 'opacity-50', 'cursor-not-allowed');
-        }
+                button.classList.remove('bg-blue-500', 'text-white', 'border-blue-600');
+                button.classList.add('bg-gray-100', 'text-gray-700', 'border-gray-300', 'opacity-50', 'cursor-not-allowed');
+            }
+        });
     });
-});
+
+    document.addEventListener("DOMContentLoaded", function() {
+        const buttons = document.querySelectorAll(".day-toggle");
+
+        buttons.forEach(button => {
+            button.addEventListener("click", function() {
+                const day = this.getAttribute("data-day");
+                const hiddenInput = document.getElementById(day + "_bool");
+
+                const currentValue = hiddenInput.value;
+                const newValue = currentValue === "1" ? "0" : "1";
+                hiddenInput.value = newValue;
+
+                // Toggle button styling based on value
+                if (newValue === "1") {
+                    this.classList.add("bg-blue-500", "text-white", "border-blue-600");
+                    this.classList.remove("bg-gray-100", "text-gray-700", "border-gray-300");
+                } else {
+                    this.classList.remove("bg-blue-500", "text-white", "border-blue-600");
+                    this.classList.add("bg-gray-100", "text-gray-700", "border-gray-300");
+                }
+            });
+        });
+    });
 </script>

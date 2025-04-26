@@ -40,6 +40,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/form/data/{id}', [FormDataController::class, 'destroy'])->name('formdata.destroy');
 
     Route::get('/view/site/checklist', [SiteChecklistController::class, 'index'])->name('site.checklist');
+
     Route::post('/store/site/checklist', [SiteChecklistController::class, 'store'])->name('sitechecklistdata.store');
 
     Route::get('employee/log/data',[FormDataController::class, 'list'])->name('employee.log.data');
@@ -58,6 +59,8 @@ Route::group(['prefix' => 'admin','middleware' => ['auth', 'admin']], function()
     Route::get('/log/data',[FormDataController::class, 'adminlog'])->name('admin.log.data');
 
     Route::get('/site-resident',[SiteController::class,'index'])->name('admin.resident');
+
+    Route::get('/view/site/checklist', [SiteChecklistController::class, 'indexAdmin'])->name('admin.site.checklist');
 
     Route::get('/checklist-management',[SiteChecklistController::class,'settings'])->name('admin.checklist.management');
     Route::post('/admin/settings/toggle', [SiteChecklistController::class, 'toggleSetting'])->name('admin.settings.toggle');

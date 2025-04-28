@@ -34,6 +34,8 @@ class SiteController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'shift_1' => 'required|string|max:255',
+            'shift_2' => 'required|string|max:255',
         ]);
 
         $site = Site::create($validated);
@@ -94,6 +96,8 @@ class SiteController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'shift_1' => 'required|string|max:255',
+            'shift_2' => 'required|string|max:255',
         ]);
     
         $site->update($validated);

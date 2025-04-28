@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\FormData;
 use App\Models\Resident;
 use App\Models\Site;
+use App\Models\SiteUsers;
 use Exception;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -20,14 +21,13 @@ class FormDataController extends Controller
         // return latest form data
         $form_data = FormData::with('site')->latest()->first();
         $sites = Site::all();
-        $site = DB::table('site_users')->where('user_id', Auth::id())->first();
+        $site = SiteUsers::where('user_id', Auth::id())->with('site')->first();
         if($site){
             $site_residents = DB::table('residents')->where('site_id', $site->site_id)->get();
         }
         else{
             $site_residents = [];
         }
-
         $residents = Resident::all();
         return view('admin.new-dashboard', ['sites' => $sites, 'site'=>$site,'site_residents'=>$site_residents, 'residents' => $residents, 'form_data' => $form_data]);
     }
@@ -83,6 +83,7 @@ class FormDataController extends Controller
             $site = DB::table('site_users')->where('user_id', Auth::id())->first();
             $validated['site_id'] = $site->site_id;
             $form_data = FormData::create($validated);
+            $form_data['site'] = Site::where('id',$site->site_id)->first();
             return response()->json(['status' => true, 'data' => $form_data], 201);
         } catch (ValidationException $e) {
             return response()->json(['status' => false, 'errors' => $e->errors()], 422);

@@ -40,6 +40,8 @@
                         <tr>
                             <th class="py-2 px-4 border-b text-left">ID</th>
                             <th class="py-2 px-4 border-b text-left">Name</th>
+                            <th class="py-2 px-4 border-b text-left">Morning Shift</th>
+                            <th class="py-2 px-4 border-b text-left">Night Shift</th>
                             <th class="py-2 px-4 border-b text-left">Actions</th>
                         </tr>
                     </thead>
@@ -48,8 +50,10 @@
                             <tr class="odd:bg-gray-700 even:bg-gray-600">
                                 <td class="py-2 px-4 border-b">{{ $site->id }}</td>
                                 <td class="py-2 px-4 border-b">{{ $site->name }}</td>
+                                <td class="py-2 px-4 border-b">{{ $site->shift_1 }}</td>
+                                <td class="py-2 px-4 border-b">{{ $site->shift_2 }}</td>
                                 <td class="py-2 px-4 border-b">
-                                    <button data-id="{{ $site->id }}" data-name="{{ $site->name }}"
+                                    <button data-id="{{ $site->id }}" data-name="{{ $site->name }}" data-shift_1="{{$site->shift_1}}"  data-shift_2="{{$site->shift_2}}"
                                         class="edit-site-btn text-blue-400 hover:text-blue-600">Edit</button> |
                                     <form action="{{ route('sites.destroy', $site) }}" method="POST"
                                         style="display:inline;"
@@ -114,6 +118,18 @@
                     <div class="mb-4">
                         <label for="site-name" class="block text-sm font-medium text-gray-300">Site Name</label>
                         <input type="text" name="name" id="site-name"
+                            class="mt-1 block w-full border-gray-500 text-white bg-gray-800 rounded-md shadow-sm"
+                            required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="shift_1" class="block text-sm font-medium text-gray-300">Morning Shift</label>
+                        <input placeholder="Eg: Morning Shift (8:00 AM to 8:00 PM)" type="text" name="shift_1" id="shift_1"
+                            class="mt-1 block w-full border-gray-500 text-white bg-gray-800 rounded-md shadow-sm"
+                            required>
+                    </div>
+                    <div class="mb-4">
+                        <label for="shift_2" class="block text-sm font-medium text-gray-300">Night Shift</label>
+                        <input placeholder="Eg: Night Shift (8:00 PM to 8:00 AM)" type="text" name="shift_2" id="shift_2"
                             class="mt-1 block w-full border-gray-500 text-white bg-gray-800 rounded-md shadow-sm"
                             required>
                     </div>
@@ -189,8 +205,12 @@
             button.addEventListener('click', (e) => {
                 const siteId = e.target.dataset.id;
                 const siteName = e.target.dataset.name;
+                const shift_1 = e.target.dataset.shift_1;
+                const shift_2 = e.target.dataset.shift_2;
 
                 document.getElementById('site-name').value = siteName;
+                document.getElementById('shift_1').value = shift_1;
+                document.getElementById('shift_2').value = shift_2;
 
                 // Change this line to use the named route
                 document.getElementById('site-form').action = "{{ route('sites.update', ':id') }}".replace(

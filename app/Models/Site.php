@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Site extends Model
 {
     use HasFactory;
-    protected $fillable = ['name'];
+    protected $fillable = ['name','shift_1','shift_2'];
 
     public function residents()
     {

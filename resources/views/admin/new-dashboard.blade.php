@@ -71,8 +71,8 @@
                 <label for="shift" class="required">Select Shift:</label>
                 <select id="shift" name="shift" required>
                     <option value="">Select Shift</option>
-                    <option value="morning">{{ $site->site->shift_1 }}</option>
-                    <option value="night">{{ $site->site->shift_2 }}</option>
+                    <option value="morning">{{$site ? $site->site->shift_1 : 'Morning' }}</option>
+                    <option value="night">{{ $site ? $site->site->shift_2 : 'Night' }}</option>
                 </select>
                 <input type="hidden" name="site_id" id="site_id" value="{{ $site ? $site->site_id : null }}">
                 <label for="resident_select" class="required">Select Resident:</label>

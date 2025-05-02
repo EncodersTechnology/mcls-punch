@@ -12,6 +12,8 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Auth;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 
 class FormDataController extends Controller
 {
@@ -22,14 +24,13 @@ class FormDataController extends Controller
         $form_data = FormData::with('site')->latest()->first();
         $sites = Site::all();
         $site = SiteUsers::where('user_id', Auth::id())->with('site')->first();
-        if($site){
+        if ($site) {
             $site_residents = DB::table('residents')->where('site_id', $site->site_id)->get();
-        }
-        else{
+        } else {
             $site_residents = [];
         }
         $residents = Resident::all();
-        return view('admin.new-dashboard', ['sites' => $sites, 'site'=>$site,'site_residents'=>$site_residents, 'residents' => $residents, 'form_data' => $form_data]);
+        return view('admin.new-dashboard', ['sites' => $sites, 'site' => $site, 'site_residents' => $site_residents, 'residents' => $residents, 'form_data' => $form_data]);
     }
 
     public function query(Request $request)
@@ -45,7 +46,7 @@ class FormDataController extends Controller
             ->with('site')
             ->first();
 
-        return response()->json(['data'=>$form_data]);
+        return response()->json(['data' => $form_data]);
     }
 
     public function store(Request $request)
@@ -83,7 +84,7 @@ class FormDataController extends Controller
             $site = DB::table('site_users')->where('user_id', Auth::id())->first();
             $validated['site_id'] = $site->site_id;
             $form_data = FormData::create($validated);
-            $form_data['site'] = Site::where('id',$site->site_id)->first();
+            $form_data['site'] = Site::where('id', $site->site_id)->first();
             return response()->json(['status' => true, 'data' => $form_data], 201);
         } catch (ValidationException $e) {
             return response()->json(['status' => false, 'errors' => $e->errors()], 422);
@@ -95,68 +96,75 @@ class FormDataController extends Controller
     public function list()
     {
         $site = DB::table('site_users')->where('user_id', Auth::id())->first();
-        if($site){
-        $datas = FormData::where('site_id', $site->site_id)->get();
-        }
-        else{
+        if ($site) {
+            $datas = FormData::where('site_id', $site->site_id)->get();
+        } else {
             $datas = [];
         }
         return view('employee.log', ['datas' => $datas]);
     }
 
     public function adminlog(Request $request)
-{
-    $site_id = $request->input('site_id');
-    $resident_id = $request->input('resident_id');
+    {
+        $site_id = $request->input('site_id');
+        $resident_id = $request->input('resident_id');
 
-    $sites = Site::all();
-    if($site_id){
-    $residents = Resident::when($site_id, function($query) use ($site_id) {
-        $query->where('site_id', $site_id);
-    })->get();
-    } else{
-        $residents = [];
+        $sites = Site::all();
+        if ($site_id) {
+            $residents = Resident::when($site_id, function ($query) use ($site_id) {
+                $query->where('site_id', $site_id);
+            })->get();
+        } else {
+            $residents = [];
+        }
+
+        $datas = FormData::query()
+            ->when($site_id, function ($query) use ($site_id) {
+                $query->where('site_id', $site_id);
+            })
+            ->when($resident_id, function ($query) use ($resident_id) {
+                $query->where('resident_id', $resident_id);
+            })
+            ->get();
+
+        return view('admin.log', compact('datas', 'sites', 'residents', 'site_id', 'resident_id'));
     }
 
-    $datas = FormData::query()
-        ->when($site_id, function($query) use ($site_id) {
-            $query->where('site_id', $site_id);
-        })
-        ->when($resident_id, function($query) use ($resident_id) {
-            $query->where('resident_id', $resident_id);
-        })
-        ->get();
-
-    return view('admin.log', compact('datas', 'sites', 'residents', 'site_id', 'resident_id'));
-}
-
-    public function residentform(){
+    public function residentform()
+    {
         $site = DB::table('site_users')->where('user_id', Auth::id())->first();
         $checklistTypes = DB::table('xwalk_site_checklist_type')
-                            ->where('is_deleted', 0)
-                            ->where('status', 1)
-                            ->get()->groupBy('checklist_type');
-                            
+            ->where('is_deleted', 0)
+            ->where('status', 1)
+            ->get()
+            ->groupBy('checklist_type');
+
         $siteChecklistSettings = DB::table('site_checklist_settings as s')
-                            ->join('xwalk_site_checklist_type as x', 's.site_checklist_id', '=', 'x.id')
-                            ->select(
-                                's.*',
-                                'x.checklist_type',
-                                'x.group_name',
-                                'x.task_name'
-                            )
-                            ->where('s.is_deleted', 0)
-                            ->where('s.status', 1)
-                            ->where('x.is_deleted', 0)
-                            ->where('x.status', 1)
-                            ->where('site_id',$site->site_id)
-                            ->get();
+            ->join('xwalk_site_checklist_type as x', 's.site_checklist_id', '=', 'x.id')
+            ->select('s.*', 'x.checklist_type', 'x.group_name', 'x.task_name')
+            ->where('s.is_deleted', 0)
+            ->where('s.status', 1)
+            ->where('x.is_deleted', 0)
+            ->where('x.status', 1)
+            ->where('site_id', $site->site_id)
+            ->get();
+
+        // Get current week's date range (Sun–Sat)
+        $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY);
+        $endOfWeek = $startOfWeek->copy()->addDays(6);
+
+        $weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
+            ->keyBy(fn($date) => strtolower($date->format('D'))) // sun, mon, tue, etc.
+            ->map(fn($date) => $date->format('Y-m-d'));
+
         return view('employee.logform', [
             'checklistTypes' => $checklistTypes,
             'siteChecklistSettings' => $siteChecklistSettings,
+            'weekDates' => $weekDates,
+            'startOfWeek' => $startOfWeek->format('Y-m-d'),
+            'endOfWeek' => $endOfWeek->format('Y-m-d'),
         ]);
     }
-
     public function show($id)
     {
         return response()->json(FormData::findOrFail($id));

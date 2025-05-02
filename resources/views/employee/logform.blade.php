@@ -85,13 +85,15 @@
                 @endphp
 
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2">Days</label>
+                    <label class="block text-gray-700 font-medium mb-2">
+                        Days (Week: {{ $startOfWeek }} to {{ $endOfWeek }})
+                    </label>
                     <div class="flex flex-wrap gap-2" id="day-toggle-group">
                         @foreach ($dayConfigs as $abbr => $dayName)
                         <button type="button"
                             data-day="{{ $abbr }}"
                             class="day-toggle px-4 py-2 rounded-full border border-gray-300 bg-gray-100 text-gray-700 hover:bg-blue-100 hover:border-blue-400 transition">
-                            {{ $dayName }}
+                            {{ $dayName }} <br><small class="text-xs text-gray-600">{{ $weekDates[$abbr] ?? '' }}</small>
                         </button>
                         <input type="hidden" name="{{ $abbr }}_bool" id="{{ $abbr }}_bool" value="0">
                         @endforeach
@@ -107,13 +109,13 @@
                 </div>
 
                 <!-- Log Date and Time -->
-                <div>
+                <!-- <div>
                     <label for="log_date_time" class="block text-gray-700 font-medium mb-1">
                         Log Date & Time <span class="text-red-600">*</span>
                     </label>
                     <input type="datetime-local" name="log_date_time" id="log_date_time" required
                         class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300">
-                </div>
+                </div> -->
 
                 <!-- Submit Button -->
                 <div>
@@ -127,37 +129,80 @@
     </div>
 
 </x-app-layout>
-
 <script>
     const checklistSettings = @json($siteChecklistSettings);
+
+    function getDayAbbrFromDate(date) {
+        const abbr = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+        return abbr[date.getDay()];
+    }
+
+    function selectDayButton(dayAbbr) {
+        const button = document.querySelector(`.day-toggle[data-day="${dayAbbr}"]`);
+        const input = document.getElementById(`${dayAbbr}_bool`);
+
+        if (!button || button.disabled) return;
+
+        // Mark it as selected
+        input.value = "1";
+        button.classList.add("bg-gray-800", "text-white", "border-blue-600");
+        button.classList.remove("bg-gray-100", "text-gray-700", "border-gray-300");
+    }
+
     document.getElementById('site_checklist_id').addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
         const selectedId = parseInt(this.value);
+        const parentGroup = selectedOption.closest('optgroup');
+        const groupLabel = parentGroup ? parentGroup.label.trim().toUpperCase() : "";
 
-        // Find the matching setting object
-        const setting = checklistSettings.find(item => item.site_checklist_id == selectedId);
-
-        if (!setting) return;
-
+        // Reset all days
         const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-
         days.forEach(day => {
-            const isEnabled = setting[`${day}_enabled_bool`] == 1;
             const button = document.querySelector(`.day-toggle[data-day="${day}"]`);
             const input = document.getElementById(`${day}_bool`);
+            input.value = "0";
 
-            if (isEnabled) {
-                button.disabled = false;
-                button.classList.remove('opacity-50', 'cursor-not-allowed');
-                input.disabled = false;
-            } else {
-                button.disabled = true;
-                input.disabled = true;
-                input.value = 0;
-
-                button.classList.remove('bg-blue-500', 'text-white', 'border-blue-600');
-                button.classList.add('bg-gray-100', 'text-gray-700', 'border-gray-300', 'opacity-50', 'cursor-not-allowed');
-            }
+            button.classList.remove("bg-gray-800", "text-white", "border-blue-600");
+            button.classList.add("bg-gray-100", "text-gray-700", "border-gray-300");
         });
+
+        // Enable/disable days based on checklist settings
+        const setting = checklistSettings.find(item => item.site_checklist_id == selectedId);
+        if (setting) {
+            days.forEach(day => {
+                const isEnabled = setting[`${day}_enabled_bool`] == 1;
+                const button = document.querySelector(`.day-toggle[data-day="${day}"]`);
+                const input = document.getElementById(`${day}_bool`);
+
+                if (isEnabled) {
+                    button.disabled = false;
+                    button.classList.remove('opacity-50', 'cursor-not-allowed');
+                    input.disabled = false;
+                } else {
+                    button.disabled = true;
+                    input.disabled = true;
+                    input.value = 0;
+                    button.classList.remove('bg-blue-500', 'text-white', 'border-blue-600');
+                    button.classList.add('bg-gray-100', 'text-gray-700', 'border-gray-300', 'opacity-50', 'cursor-not-allowed');
+                }
+            });
+        }
+
+        // Auto-select day based on group label
+        const today = new Date();
+        let targetDay;
+
+        if (groupLabel === "DAY SHIFT CHECKLIST") {
+            targetDay = getDayAbbrFromDate(today);
+        } else if (groupLabel === "NIGHT SHIFT CHECKLIST") {
+            const yesterday = new Date();
+            yesterday.setDate(today.getDate() - 1);
+            targetDay = getDayAbbrFromDate(yesterday);
+        }
+
+        if (targetDay) {
+            selectDayButton(targetDay);
+        }
     });
 
     document.addEventListener("DOMContentLoaded", function() {
@@ -165,14 +210,14 @@
 
         buttons.forEach(button => {
             button.addEventListener("click", function() {
+                if (this.disabled) return;
                 const day = this.getAttribute("data-day");
                 const hiddenInput = document.getElementById(day + "_bool");
-
                 const currentValue = hiddenInput.value;
                 const newValue = currentValue === "1" ? "0" : "1";
                 hiddenInput.value = newValue;
 
-                // Toggle button styling based on value
+                // Toggle styling
                 if (newValue === "1") {
                     this.classList.add("bg-gray-800", "text-white", "border-blue-600");
                     this.classList.remove("bg-gray-100", "text-gray-700", "border-gray-300");

@@ -73,7 +73,8 @@
     </style>
 
     <div class="container">
-        <table style="background-color:white;">
+        <h2 style="text-align:center;">Day Shift Checklist for Week: {{ \Carbon\Carbon::parse($weekStart)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($weekEnd)->format('M d, Y') }}</h2>
+        <table>
             <tr class="section-header">
                 <td colspan="8">DAY SHIFT CHECKLIST</td>
             </tr>
@@ -87,74 +88,38 @@
                 <th>FRI</th>
                 <th>SAT</th>
             </tr>
-            @foreach ($day_shift_checklist as $groupName => $data)
+            @foreach ($day_shift_checklist as $groupName => $group)
             <tr class="section-header">
                 <td colspan="8">{{ $groupName }}</td>
             </tr>
-            @foreach ($data as $row)
+            @foreach ($group as $row)
             @php
-            $dataRow = $checklist_data[$row->site_checklist_id] ?? null;
+            $taskDataList = $checklistDataByTask[$row->site_checklist_id] ?? collect();
             @endphp
             <tr>
                 <td>{{ $row->task_name }}</td>
+                @foreach (['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as $day)
+                @php
+                $dayMarked = $taskDataList->contains(fn($entry) => $entry->{$day . '_bool'});
+                @endphp
                 <td>
-                    @if(isset($dataRow) && $dataRow->sun_bool)
+                    @if ($dayMarked)
                     <span class="tick">&#10004;</span>
                     @else
                     <span class="cross">&#10008;</span>
                     @endif
                 </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->mon_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->tue_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->wed_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->thu_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->fri_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->sat_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
+                @endforeach
             </tr>
             @endforeach
-            @endforeach
 
+            @endforeach
         </table>
     </div>
 
     <div class="container">
-        <table style="background-color:white;">
+        <h2 style="text-align:center;">Night Shift Checklist for Week: {{ \Carbon\Carbon::parse($weekStart)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($weekEnd)->format('M d, Y') }}</h2>
+        <table>
             <tr class="section-header">
                 <td colspan="8">NIGHT SHIFT CHECKLIST</td>
             </tr>
@@ -168,68 +133,31 @@
                 <th>FRI</th>
                 <th>SAT</th>
             </tr>
-            @foreach ($night_shift_checklist as $groupName => $data)
+            @foreach ($night_shift_checklist as $groupName => $group)
             <tr class="section-header">
                 <td colspan="8">{{ $groupName }}</td>
             </tr>
-            @foreach ($data as $row)
+            @foreach ($group as $row)
             @php
-            $dataRow = $checklist_data[$row->site_checklist_id] ?? null;
+            $taskDataList = $checklistDataByTask[$row->site_checklist_id] ?? collect();
             @endphp
             <tr>
                 <td>{{ $row->task_name }}</td>
+                @foreach (['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as $day)
+                @php
+                $dayMarked = $taskDataList->contains(fn($entry) => $entry->{$day . '_bool'});
+                @endphp
                 <td>
-                    @if(isset($dataRow) && $dataRow->sun_bool)
+                    @if ($dayMarked)
                     <span class="tick">&#10004;</span>
                     @else
                     <span class="cross">&#10008;</span>
                     @endif
                 </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->mon_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->tue_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->wed_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->thu_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->fri_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
-                <td>
-                    @if(isset($dataRow) && $dataRow->sat_bool)
-                    <span class="tick">&#10004;</span>
-                    @else
-                    <span class="cross">&#10008;</span>
-                    @endif
-                </td>
+                @endforeach
             </tr>
-
             @endforeach
+
             @endforeach
         </table>
     </div>

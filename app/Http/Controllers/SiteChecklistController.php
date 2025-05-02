@@ -8,6 +8,8 @@ use App\Models\SiteChecklistSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Auth;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
 
 class SiteChecklistController extends Controller
 {
@@ -19,7 +21,10 @@ class SiteChecklistController extends Controller
         $site = auth()->user()->site;
         if ($site) {
             $site_id = $site->id;
-
+    
+            $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay();
+            $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY)->endOfDay();
+    
             $day_shift_checklist = DB::table('site_checklist_settings')
                 ->select('site_checklist_settings.*', 'xwalk_site_checklist_type.*')
                 ->join('xwalk_site_checklist_type', 'site_checklist_settings.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
@@ -27,7 +32,7 @@ class SiteChecklistController extends Controller
                 ->where('xwalk_site_checklist_type.checklist_type', 'DAY SHIFT CHECKLIST')
                 ->get()
                 ->groupBy('group_name');
-
+    
             $night_shift_checklist = DB::table('site_checklist_settings')
                 ->select('site_checklist_settings.*', 'xwalk_site_checklist_type.*')
                 ->join('xwalk_site_checklist_type', 'site_checklist_settings.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
@@ -35,30 +40,40 @@ class SiteChecklistController extends Controller
                 ->where('xwalk_site_checklist_type.checklist_type', 'NIGHT SHIFT CHECKLIST')
                 ->get()
                 ->groupBy('group_name');
-
-            $checklist_data = DB::table('site_checklist_data')
-                ->where('site_id', $site_id)
-                ->get()
-                ->keyBy('site_checklist_id');
-        }
-        else{
+    
+            $checklistDataByTask = DB::table('site_checklist_data')
+            ->where('site_id', $site_id)
+            ->whereDate('week_start', $startOfWeek->toDateString())
+            ->whereDate('week_end', $endOfWeek->toDateString())
+            ->get()
+            ->groupBy('site_checklist_id');
+        } else {
             $day_shift_checklist = [];
             $night_shift_checklist = [];
             $checklist_data = [];
+            $startOfWeek = null;
+            $endOfWeek = null;
         }
-
+    
         return view('employee.sitechecklist', [
             'day_shift_checklist' => $day_shift_checklist,
             'night_shift_checklist' => $night_shift_checklist,
-            'checklist_data' => $checklist_data,
+            'checklistDataByTask' => $checklistDataByTask,
+            'weekStart' => $startOfWeek,
+            'weekEnd' => $endOfWeek,
         ]);
     }
-
     public function indexAdmin(Request $request)
     {
         $sites = Site::all();
-
         $selectedSiteId = $request->site_id;
+
+        // Force the week_start to be a Sunday
+        $weekStart = $request->week_start
+            ? Carbon::parse($request->week_start)->startOfWeek(Carbon::SUNDAY)
+            : Carbon::now()->startOfWeek(Carbon::SUNDAY);
+
+        $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SATURDAY);
 
         $day_shift_checklist = collect();
         $night_shift_checklist = collect();
@@ -81,7 +96,22 @@ class SiteChecklistController extends Controller
                 ->groupBy('group_name');
         }
 
-        return view('admin.site', compact('sites', 'selectedSiteId', 'day_shift_checklist', 'night_shift_checklist'));
+        $checklistDataByTask = DB::table('site_checklist_data')
+            ->where('site_id', $selectedSiteId)
+            ->whereDate('week_start', $weekStart->toDateString())
+            ->whereDate('week_end', $weekEnd->toDateString())
+            ->get()
+            ->groupBy('site_checklist_id');
+
+        return view('admin.site', compact(
+            'sites',
+            'selectedSiteId',
+            'day_shift_checklist',
+            'night_shift_checklist',
+            'checklistDataByTask',
+            'weekStart',
+            'weekEnd'
+        ));
     }
 
     public function settings(Request $request)
@@ -157,24 +187,42 @@ class SiteChecklistController extends Controller
 
         $site = auth()->user()->site;
 
+        $now = now();
+
         $days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+        $startOfWeek = Carbon::parse($now)->startOfWeek(Carbon::SUNDAY);
+        $endOfWeek = $startOfWeek->copy()->addDays(6);
+
+        $weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
+            ->keyBy(fn($date) => strtolower($date->format('D')))
+            ->map(fn($date) => $date->format('Y-m-d'));
+
+        // Check for existing logs within this week
         $existing = DB::table('site_checklist_data')
             ->where('site_checklist_id', $request->site_checklist_id)
-            ->where('site_id',$site->id)
-            ->first();
-        if ($existing) {
-            foreach ($days as $day) {
-                $field = $day . '_bool';
-                if ($request->$field && $existing->$field) {
-                    return back()->withErrors(["$field" => ucfirst($day) . " already filled for this checklist."]);
-                }
+            ->where('site_id', $site->id)
+            ->whereBetween('week_start', [$startOfWeek, $endOfWeek])
+            ->get();
+
+        foreach ($days as $day) {
+            $field = $day . '_bool';
+            if ($request->$field && $existing->contains(fn($e) => $e->$field)) {
+                return back()->withErrors(["$field" => ucfirst($day) . " already filled for this checklist in this week."]);
             }
         }
 
-        // Insert data
+        // Build map of selected day => date
+        $selectedDates = [];
+        foreach ($days as $day) {
+            if ($request->{$day . '_bool'}) {
+                $selectedDates[$day] = $weekDates[$day];
+            }
+        }
+
+        // Insert
         DB::table('site_checklist_data')->insert([
             'user_id' => auth()->id(),
-            'site_id' => optional(auth()->user())->site->id,
+            'site_id' => $site->id,
             'site_checklist_id' => $request->site_checklist_id,
             'sun_bool' => $request->sun_bool ?? 0,
             'mon_bool' => $request->mon_bool ?? 0,
@@ -184,7 +232,10 @@ class SiteChecklistController extends Controller
             'fri_bool' => $request->fri_bool ?? 0,
             'sat_bool' => $request->sat_bool ?? 0,
             'temp_value' => $request->temp_value,
-            'log_date_time' => $request->log_date_time,
+            'log_date_time' => $now,
+            'day_date_map' => json_encode($selectedDates),
+            'week_start' => $startOfWeek->format('Y-m-d'),
+            'week_end' => $endOfWeek->format('Y-m-d'),
             'created_by' => auth()->id(),
             'updated_by' => null,
             'deleted_by' => null,

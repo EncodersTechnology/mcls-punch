@@ -92,7 +92,7 @@ class SiteUsersController extends Controller
      */
     public function update(Request $request, SiteUsers $siteUsers, $id)
     {
-        $user = User::findOrFail($id);
+        $user = User::findOrFail($request->id);
         // Validate the incoming request data
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',

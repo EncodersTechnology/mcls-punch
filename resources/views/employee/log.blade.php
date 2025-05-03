@@ -1,15 +1,28 @@
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-center items-center mb-6">
-            <div class="flex items-center space-x-4">
-                <input type="text" id="searchInput" placeholder="Search..."
-                    class="px-4 py-2 border rounded-md w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out text-gray-700 placeholder-gray-500">
-                <button
-                    class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition duration-300 ease-in-out"
-                    id="exportBtn">Export</button>
-            </div>
-        </div>
-    </x-slot>
+<x-slot name="header">
+    <form method="GET" action="{{ route('employee.log.data') }}" class="flex justify-center items-center mb-6 gap-4 flex-wrap">
+        <input type="date" name="from_date" value="{{ old('from_date', $from_date) }}"
+            class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700" />
+
+        <input type="date" name="to_date" value="{{ old('to_date', $to_date) }}"
+            class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700" />
+
+        <input type="text" name="search" value="{{ old('search', $search) }}" placeholder="Search by name"
+            class="px-4 py-2 border rounded-md w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700 placeholder-gray-500" />
+
+        <button type="submit"
+            class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition duration-300 ease-in-out">
+            Filter
+        </button>
+
+        <a href="{{ route('employee.log.data') }}"
+            class="px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-300 ease-in-out">
+            Reset
+        </a>
+    </form>
+</x-slot>
+
+
 
     <link href="https://fonts.googleapis.com/css2?family=Muli&family=Rubik:wght@500&display=swap" rel="stylesheet">
 
@@ -18,6 +31,11 @@
         <!-- Demo Table -->
         <div class="overflow-x-auto shadow-lg bg-white rounded-lg">
             <table class="min-w-full bg-white border border-gray-300 text-left rounded-md" id="residentLogTable">
+                <thead class="text-white bg-gradient-to-r from-blue-500 to-purple-600">
+                    <tr>
+                        <th colspan="11">Log data for site {{ $site->name }}</th>
+                    </tr>
+                </thead>
                 <thead class="text-white bg-gradient-to-r from-blue-500 to-purple-600">
                     <tr>
                         <th class="py-3 px-6 border-b text-sm font-bold">Employee Type</th>
@@ -30,6 +48,7 @@
                         <th class="py-3 px-6 border-b text-sm font-bold">Nutritional Intake</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Sleep Patterns</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Additional Notes</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Date Time</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Action</th>
                     </tr>
                 </thead>
@@ -47,6 +66,7 @@
                             <td class="py-3 px-6 border-b text-sm">{{ $data->nutrition }}</td>
                             <td class="py-3 px-6 border-b text-sm">{{ $data->sleep }}</td>
                             <td class="py-3 px-6 border-b text-sm">{{ $data->notes }}</td>
+                            <td class="py-3 px-6 border-b text-xs">{{ $data->log_date }} {{ $data->log_time }}</td>
                             <td>
                                 <button type="button"
                                     class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
@@ -65,21 +85,21 @@
 
     <script>
         // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', function() {
-            const query = searchInput.value.toLowerCase();
-            const rows = document.querySelectorAll('#tableBody tr');
-            rows.forEach(row => {
-                const cells = row.getElementsByTagName('td');
-                let isMatch = false;
-                Array.from(cells).forEach(cell => {
-                    if (cell.innerText.toLowerCase().includes(query)) {
-                        isMatch = true;
-                    }
-                });
-                row.style.display = isMatch ? '' : 'none';
-            });
-        });
+        // const searchInput = document.getElementById('searchInput');
+        // searchInput.addEventListener('input', function() {
+        //     const query = searchInput.value.toLowerCase();
+        //     const rows = document.querySelectorAll('#tableBody tr');
+        //     rows.forEach(row => {
+        //         const cells = row.getElementsByTagName('td');
+        //         let isMatch = false;
+        //         Array.from(cells).forEach(cell => {
+        //             if (cell.innerText.toLowerCase().includes(query)) {
+        //                 isMatch = true;
+        //             }
+        //         });
+        //         row.style.display = isMatch ? '' : 'none';
+        //     });
+        // });
 
         document.getElementById('exportBtn').addEventListener('click', function() {
             const table = document.getElementById('residentLogTable');

@@ -70,7 +70,7 @@ class FormDataController extends Controller
 
                 'resident_id' => ['required', 'exists:residents,id'],
 
-                'shift' => ['required', Rule::in(['morning', 'night'])],
+                'shift' => ['required'],
                 'adls' => 'required|string',
                 'medical' => 'required|string',
                 'behavior' => 'required|string',
@@ -93,23 +93,54 @@ class FormDataController extends Controller
         }
     }
 
-    public function list()
+    public function list(Request $request)
     {
-        $site = DB::table('site_users')->where('user_id', Auth::id())->first();
-        if ($site) {
-            $datas = FormData::where('site_id', $site->site_id)->get();
-        } else {
-            $datas = [];
+        $user_site = DB::table('site_users')->where('user_id', Auth::id())->first();
+        $datas = [];
+        $site = null;
+
+        if ($user_site) {
+            $site = Site::where('id', $user_site->site_id)->first();
+
+            $query = FormData::where('site_id', $user_site->site_id);
+
+            // Apply date filter
+            if ($request->filled('from_date') && $request->filled('to_date')) {
+                $query->whereBetween('log_date', [$request->from_date, $request->to_date]);
+            }
+
+            // Apply search filter on employee or resident name
+            if ($request->filled('search')) {
+                $search = $request->search;
+                $query->where(function ($q) use ($search) {
+                    $q->where('mcls_name', 'like', "%$search%")
+                        ->orWhere('agency_employee_name', 'like', "%$search%");
+                });
+            }
+
+            $datas = $query->get();
         }
-        return view('employee.log', ['datas' => $datas]);
+
+        return view('employee.log', [
+            'datas' => $datas,
+            'site' => $site,
+            'from_date' => $request->from_date,
+            'to_date' => $request->to_date,
+            'search' => $request->search
+        ]);
     }
+
 
     public function adminlog(Request $request)
     {
         $site_id = $request->input('site_id');
         $resident_id = $request->input('resident_id');
-
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        // Get all sites for the dropdown
         $sites = Site::all();
+
+        // If site_id is present, get the residents for that site
         if ($site_id) {
             $residents = Resident::when($site_id, function ($query) use ($site_id) {
                 $query->where('site_id', $site_id);
@@ -118,6 +149,7 @@ class FormDataController extends Controller
             $residents = [];
         }
 
+        // Build the query for FormData with the filters
         $datas = FormData::query()
             ->when($site_id, function ($query) use ($site_id) {
                 $query->where('site_id', $site_id);
@@ -125,10 +157,19 @@ class FormDataController extends Controller
             ->when($resident_id, function ($query) use ($resident_id) {
                 $query->where('resident_id', $resident_id);
             })
+            ->when($start_date, function ($query) use ($start_date) {
+                $query->whereDate('log_date', '>=', $start_date);
+            })
+            ->when($end_date, function ($query) use ($end_date) {
+                $query->whereDate('log_date', '<=', $end_date);
+            })
             ->get();
 
-        return view('admin.log', compact('datas', 'sites', 'residents', 'site_id', 'resident_id'));
+        // Return view with the data
+        return view('admin.log', compact('datas', 'sites', 'residents', 'site_id', 'resident_id', 'start_date', 'end_date'));
     }
+
+
 
     public function residentform()
     {

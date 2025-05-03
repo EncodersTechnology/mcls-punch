@@ -17,6 +17,8 @@
             <p><strong>Nutrition:</strong> {{ $data->nutrition }}</p>
             <p><strong>Sleep:</strong> {{ $data->sleep }}</p>
             <p><strong>Notes:</strong> {{ $data->notes }}</p>
+            <p><strong>Date:</strong> {{ $data->log_date }}</p>
+            <p><strong>Time:</strong> {{ $data->log_time }}</p>
         </div>
     </div>
 </div>

@@ -61,9 +61,9 @@
                         class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300">
                         <option value="" disabled selected>Select Checklist</option>
                         @foreach ($checklistTypes as $type => $items)
-                        <optgroup label="{{ $type }}">
+                        <optgroup label="{{ $type == 'DAY SHIFT CHECKLIST' ? '🌞' : '🌙' }} {{ $type }}"> {{-- Example: 🌙 Night Shift or ☀️ Day Shift --}}
                             @foreach ($items as $checklist)
-                            <option value="{{ $checklist->id }}">{{ $checklist->task_name }}</option>
+                            <option value="{{ $checklist->id }}">{{ $type == 'DAY SHIFT CHECKLIST' ? '🌞' : '🌙' }} {{ $checklist->task_name }}</option>
                             @endforeach
                         </optgroup>
                         @endforeach
@@ -104,9 +104,11 @@
                 <div>
                     <label for="temp_value" class="block text-gray-700 font-medium mb-1">Temperature</label>
                     <input type="text" name="temp_value" id="temp_value"
-                        class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300"
+                        class="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring focus:ring-blue-300"
                         placeholder="Enter temperature">
+                    <p class="text-xs text-blue-500">The value is in °C (Celsius).</p>
                 </div>
+
 
                 <!-- Log Date and Time -->
                 <!-- <div>

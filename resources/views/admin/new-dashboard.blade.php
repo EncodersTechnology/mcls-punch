@@ -69,17 +69,35 @@
                 </div>
 
                 <label for="shift" class="required">Select Shift:</label>
-                <select id="shift" name="shift" required>
+                <select id="shift" name="shift" required onchange="toggleCustomShift(this)">
                     <option value="">Select Shift</option>
-                    <option value="morning">{{$site ? $site->site->shift_1 : 'Morning' }}</option>
-                    <option value="night">{{ $site ? $site->site->shift_2 : 'Night' }}</option>
+                    <option value="{{ $site ? $site->site->shift_1 : 'morning' }}">
+                        {{ $site ? $site->site->shift_1 : 'Morning' }}
+                    </option>
+                    <option value="{{ $site ? $site->site->shift_2 : 'night' }}">
+                        {{ $site ? $site->site->shift_2 : 'Night' }}
+                    </option>
+                    <option value="custom">Other</option>
                 </select>
+
+                <div id="customShiftContainer" style="display:none; margin-top: 10px;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <input type="text" id="customShiftName" placeholder="Custom Shift Name" style="flex: 1;">
+                        <input type="time" id="customShiftFrom" style="width: 120px;">
+                        <input type="time" id="customShiftTo" style="width: 120px;">
+                    </div>
+                </div>
+
+                <input type="hidden" name="shift" id="shiftFinalValue">
+
+
+
                 <input type="hidden" name="site_id" id="site_id" value="{{ $site ? $site->site_id : null }}">
                 <label for="resident_select" class="required">Select Resident:</label>
                 <select name="resident_id" required>
                     <option value="" selected disabled>Select Resident</option>
                     @foreach ($site_residents as $data)
-                        <option value="{{ $data->id }}">{{ $data->name }}</option>
+                    <option value="{{ $data->id }}">{{ $data->name }}</option>
                     @endforeach
                 </select>
 
@@ -87,25 +105,25 @@
                 <input type="hidden" id="logTime" name="log_time">
 
                 <label for="adls" class="required">Activities of Daily Living:</label>
-                <textarea id="adls" name="adls" required placeholder="E.g., Brushed teeth at 8 AM..."></textarea>
+                <input type="text" id="adls" name="adls" required placeholder="E.g., Brushed teeth at 8 AM...">
 
                 <label for="medical" class="required">Medical and Health Information:</label>
-                <textarea id="medical" name="medical" required placeholder="E.g., Took prescribed medication at 9 AM..."></textarea>
+                <input type="text" id="medical" name="medical" required placeholder="E.g., Took prescribed medication at 9 AM...">
 
                 <label for="behavior" class="required">Behavior and Emotional Well-being:</label>
-                <textarea id="behavior" name="behavior" required placeholder="E.g., SM was happy and engaged during activities..."></textarea>
+                <input type="text" id="behavior" name="behavior" required placeholder="E.g., SM was happy and engaged during activities...">
 
                 <label for="activities" class="required">Activities and Engagement:</label>
-                <textarea id="activities" name="activities" required placeholder="E.g., Participated in group art session..."></textarea>
+                <input type="text" id="activities" name="activities" required placeholder="E.g., Participated in group art session...">
 
                 <label for="nutrition" class="required">Nutritional Intake:</label>
-                <textarea id="nutrition" name="nutrition" required placeholder="E.g., Ate oatmeal and fruit for breakfast..."></textarea>
+                <input type="text" id="nutrition" name="nutrition" required placeholder="E.g., Ate oatmeal and fruit for breakfast...">
 
                 <label for="sleep" class="required">Sleep Patterns:</label>
-                <textarea id="sleep" name="sleep" required placeholder="E.g., Went to bed at 9 PM and woke up at 7 AM..."></textarea>
+                <input type="text" id="sleep" name="sleep" required placeholder="E.g., Went to bed at 9 PM and woke up at 7 AM...">
 
                 <label for="notes" class="required">Additional Notes:</label>
-                <textarea id="notes" name="notes" required placeholder="E.g., No concerns noted today..."></textarea>
+                <input type="text" id="notes" name="notes" required placeholder="E.g., No concerns noted today...">
 
                 <button
                     class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300"
@@ -118,94 +136,124 @@
             <div class="mew">
                 <h1 class="text-2xl font-semibold mb-4">Latest Log Entry</h1>
                 @if (auth()->user()->usertype == 'admin')
-                    <div class="flex gap-4">
-                        <div style="display: flex; flex-direction: column;">
-                            <label for="filter_site" class="required">Site of Work:</label>
-                            <select id="filter_site" name="filter_site_id" required class="filter_site_select">
-                                <option value="" selected disabled>All Site</option>
-                                @foreach ($sites as $site)
-                                    <option value="{{ $site->id }}">{{ $site->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div style="display: flex; flex-direction: column;">
-                            <label for="filter_resident_select" class="required">Resident:</label>
-                            <select id="filter_resident_select" name="filter_resident_id" required>
-                                <option value="" selected disabled>All Resident</option>
-                            </select>
-                        </div>
+                <div class="flex gap-4">
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="filter_site" class="required">Site of Work:</label>
+                        <select id="filter_site" name="filter_site_id" required class="filter_site_select">
+                            <option value="" selected disabled>All Site</option>
+                            @foreach ($sites as $site)
+                            <option value="{{ $site->id }}">{{ $site->name }}</option>
+                            @endforeach
+                        </select>
                     </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <label for="filter_resident_select" class="required">Resident:</label>
+                        <select id="filter_resident_select" name="filter_resident_id" required>
+                            <option value="" selected disabled>All Resident</option>
+                        </select>
+                    </div>
+                </div>
                 @endif
                 <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
                     @if ($form_data)
-                        <tbody>
-                            <tr>
-                                <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
-                                <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-sm font-semibold text-gray-700">Employee Type:</td>
-                                <td class="p-4 text-sm text-gray-900" id="display_employeeType">
-                                    {{ $form_data->employee_type }}</td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-sm font-semibold text-gray-700">Full Name:</td>
-                                <td class="p-4 text-sm text-gray-900" id="display_fullName">
-                                    {{ $form_data->mcls_name ? $form_data->mcls_name : $form_data->agency_employee_name }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-sm font-semibold text-gray-700">Site of Work:</td>
-                                <td class="p-4 text-sm text-gray-900" id="display_site">{{ $form_data->site->name }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-sm font-semibold text-gray-700">Shift:</td>
-                                <td class="p-4 text-sm text-gray-900" id="display_shift">{{ $form_data->shift }}</td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-sm font-semibold text-gray-700">Medical and Health Information:
-                                </td>
-                                <td class="p-4 text-sm text-gray-900" id="display_medical">{{ $form_data->medical }}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-sm font-semibold text-gray-700">Behavior and Emotional Well-being:
-                                </td>
-                                <td class="p-4 text-sm text-gray-900" id="display_behavior">
-                                    {{ $form_data->behavior }}</td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-sm font-semibold text-gray-700">Activities and Engagement:</td>
-                                <td class="p-4 text-sm text-gray-900" id="display_activities">
-                                    {{ $form_data->activities }}</td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-sm font-semibold text-gray-700">Nutritional Intake:</td>
-                                <td class="p-4 text-sm text-gray-900" id="display_nutrition">
-                                    {{ $form_data->nutrition }}</td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-sm font-semibold text-gray-700">Sleep Patterns:</td>
-                                <td class="p-4 text-sm text-gray-900" id="display_sleep">{{ $form_data->sleep }}</td>
-                            </tr>
-                            <tr>
-                                <td class="p-4 text-sm font-semibold text-gray-700">Additional Notes:</td>
-                                <td class="p-4 text-sm text-gray-900" id="display_notes">{{ $form_data->notes }}</td>
-                            </tr>
-                        </tbody>
+                    <tbody>
+                        <tr>
+                            <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
+                            <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Employee Type:</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_employeeType">
+                                {{ $form_data->employee_type }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Full Name:</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_fullName">
+                                {{ $form_data->mcls_name ? $form_data->mcls_name : $form_data->agency_employee_name }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Site of Work:</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_site">{{ $form_data->site->name }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Shift:</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_shift">{{ $form_data->shift }}</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Medical and Health Information:
+                            </td>
+                            <td class="p-4 text-sm text-gray-900" id="display_medical">{{ $form_data->medical }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Behavior and Emotional Well-being:
+                            </td>
+                            <td class="p-4 text-sm text-gray-900" id="display_behavior">
+                                {{ $form_data->behavior }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Activities and Engagement:</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_activities">
+                                {{ $form_data->activities }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Nutritional Intake:</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_nutrition">
+                                {{ $form_data->nutrition }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Sleep Patterns:</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_sleep">{{ $form_data->sleep }}</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Additional Notes:</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_notes">{{ $form_data->notes }}</td>
+                        </tr>
+                    </tbody>
                     @else
-                        <tbody>
-                            <tr>
-                                <td colspan="2" class="p-4 text-center text-gray-700">No log data found.</td>
-                            </tr>
-                        </tbody>
+                    <tbody>
+                        <tr>
+                            <td colspan="2" class="p-4 text-center text-gray-700">No log data found.</td>
+                        </tr>
+                    </tbody>
                     @endif
                 </table>
             </div>
         </div>
     </div>
     <script>
+        function toggleCustomShift(select) {
+            const container = document.getElementById('customShiftContainer');
+            const hiddenInput = document.getElementById('shiftFinalValue');
+
+            if (select.value === 'custom') {
+                container.style.display = 'block';
+                hiddenInput.disabled = false;
+                select.name = 'unused_shift'; // Temporarily disable this select from being submitted
+            } else {
+                container.style.display = 'none';
+                hiddenInput.value = select.value;
+                hiddenInput.disabled = false;
+                select.name = 'shift';
+            }
+        }
+
+        document.getElementById('customShiftTo').addEventListener('input', function() {
+            const name = document.getElementById('customShiftName').value;
+            const from = document.getElementById('customShiftFrom').value;
+            const to = document.getElementById('customShiftTo').value;
+
+            if (name && from && to) {
+                document.getElementById('shiftFinalValue').value = `${name} (${from} - ${to})`;
+            }
+        });
+
         document.getElementById("site1").addEventListener("change", function() {
             const formSection = document.getElementById("section1");
             const logSection = document.getElementById("section2");

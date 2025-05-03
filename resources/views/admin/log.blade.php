@@ -26,12 +26,24 @@
                         @endforeach
                     </select>
 
+                    <!-- Start Date Filter -->
+                    <input type="date" name="start_date" value="{{ request('start_date') }}"
+                        class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700" />
 
-                    <input type="text" id="searchInput" placeholder="Search..."
-                        class="px-4 py-2 border rounded-md w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-300 ease-in-out text-gray-700 placeholder-gray-500">
-                    <!-- <button
+                    <!-- End Date Filter -->
+                    <input type="date" name="end_date" value="{{ request('end_date') }}"
+                        class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700" />
+
+                    <button type="submit" class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition duration-300 ease-in-out">Apply Filters</button>
+
+                    <!-- Clear Filters Button -->
+                    <a href="{{ route('admin.log.data') }}" name="clear_filters" value="true" class="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
+                        Clear Filters
+                    </a>
+                    <button
                         class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition duration-300 ease-in-out"
-                        id="exportBtn">Export</button> -->
+                        id="exportBtn">Export</button>
+                </form>
             </div>
         </div>
     </x-slot>
@@ -55,6 +67,7 @@
                         <th class="py-3 px-6 border-b text-sm font-bold">Nutritional Intake</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Sleep Patterns</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Additional Notes</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Date Time</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Action</th>
                     </tr>
                 </thead>
@@ -73,6 +86,7 @@
                         <td class="py-3 px-6 border-b text-sm">{{ $data->nutrition }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->sleep }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->notes }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->log_date }} {{ $data->log_time }}</td>
                         <td>
                             <button type="button"
                                 class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
@@ -91,23 +105,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
     <script>
-        // Search functionality
-        const searchInput = document.getElementById('searchInput');
-        searchInput.addEventListener('input', function() {
-            const query = searchInput.value.toLowerCase();
-            const rows = document.querySelectorAll('#tableBody tr');
-            rows.forEach(row => {
-                const cells = row.getElementsByTagName('td');
-                let isMatch = false;
-                Array.from(cells).forEach(cell => {
-                    if (cell.innerText.toLowerCase().includes(query)) {
-                        isMatch = true;
-                    }
-                });
-                row.style.display = isMatch ? '' : 'none';
-            });
-        });
-
         document.getElementById('exportBtn').addEventListener('click', function() {
             const table = document.getElementById('residentLogTable');
 

@@ -20,6 +20,15 @@
             Reset
         </a>
     </form>
+    @if ($errors->any())
+        <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
+            <ul class="list-disc ml-5">
+                @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
 </x-slot>
 
 
@@ -39,8 +48,10 @@
                 <thead class="text-white bg-gradient-to-r from-blue-500 to-purple-600">
                     <tr>
                         <th class="py-3 px-6 border-b text-sm font-bold">Employee Type</th>
-                        <th class="py-3 px-6 border-b text-sm font-bold">Resident Name</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Name</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Client Name</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Site of Work</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Resident Name</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Shift</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Medical & Health Info</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Behavior & Emotional Well-being</th>
@@ -58,7 +69,9 @@
                             <td class="py-3 px-6 border-b text-sm">{{ $data->employee_type }}</td>
                             <td class="py-3 px-6 border-b text-sm">
                                 {{ $data->mcls_name ? $data->mcls_name : $data->agency_employee_name }}</td>
+                            <td class="py-3 px-6 border-b text-sm">{{ $data->createdBy->name }}</td>
                             <td class="py-3 px-6 border-b text-sm">{{ $data->site->name }}</td>
+                            <td class="py-3 px-6 border-b text-sm">{{ $data->resident->name }}</td>
                             <td class="py-3 px-6 border-b text-sm">{{ $data->shift }}</td>
                             <td class="py-3 px-6 border-b text-sm">{{ $data->medical }}</td>
                             <td class="py-3 px-6 border-b text-sm">{{ $data->behavior }}</td>

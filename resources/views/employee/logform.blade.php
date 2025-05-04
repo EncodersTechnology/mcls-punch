@@ -193,10 +193,9 @@
         // Auto-select day based on group label
         const today = new Date();
         let targetDay;
-
-        if (groupLabel === "DAY SHIFT CHECKLIST") {
+        if (groupLabel === "🌞 DAY SHIFT CHECKLIST") {
             targetDay = getDayAbbrFromDate(today);
-        } else if (groupLabel === "NIGHT SHIFT CHECKLIST") {
+        } else if (groupLabel === "🌙 NIGHT SHIFT CHECKLIST") {
             const yesterday = new Date();
             yesterday.setDate(today.getDate() - 1);
             targetDay = getDayAbbrFromDate(yesterday);
@@ -209,6 +208,8 @@
 
     document.addEventListener("DOMContentLoaded", function() {
         const buttons = document.querySelectorAll(".day-toggle");
+        const tempValuesByDate = @json($tempValuesByDate);
+        const tempInput = document.getElementById('temp_value');
 
         buttons.forEach(button => {
             button.addEventListener("click", function() {
@@ -221,9 +222,19 @@
 
                 // Toggle styling
                 if (newValue === "1") {
+                    // Handle temp value
+                    if (tempValuesByDate[day]) {
+                        tempInput.value = tempValuesByDate[day]; // first value
+                        tempInput.disabled = true;
+                    } else {
+                        tempInput.value = '';
+                        tempInput.disabled = false;
+                    }
                     this.classList.add("bg-gray-800", "text-white", "border-blue-600");
                     this.classList.remove("bg-gray-100", "text-gray-700", "border-gray-300");
                 } else {
+                    tempInput.value = '';
+                    tempInput.disabled = false;
                     this.classList.remove("bg-gray-800", "text-white", "border-blue-600");
                     this.classList.add("bg-gray-100", "text-gray-700", "border-gray-300");
                 }

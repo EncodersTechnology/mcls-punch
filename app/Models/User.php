@@ -53,4 +53,8 @@ class User extends Authenticatable
     {
         return $this->hasOneThrough(Site::class, SiteUsers::class, 'user_id', 'id', 'id', 'site_id');
     }
+
+    public function formDatas(){
+        return $this->hasMany(FormData::class);
+    }
 }

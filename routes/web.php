@@ -7,6 +7,7 @@ use App\Http\Controllers\ResidentController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SiteUsersController;
 use App\Http\Controllers\SiteChecklistController;
+use Illuminate\Support\Facades\Auth;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,6 +21,9 @@ use App\Http\Controllers\SiteChecklistController;
 */
 
 Route::get('/', function () {
+    if (Auth::check()) {
+        return redirect()->route('dashboard'); // or just '/dashboard'
+    }
     return view('auth.login');
 })->name('home');
 

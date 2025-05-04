@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\FormData;
 use App\Models\Resident;
 use App\Models\Site;
+use App\Models\SiteChecklist;
 use App\Models\SiteUsers;
 use Exception;
 use Illuminate\Validation\Rule;
@@ -83,6 +84,7 @@ class FormDataController extends Controller
             $validated['log_time'] = now()->format('H:i:s'); // returns 'HH:MM:SS'
             $site = DB::table('site_users')->where('user_id', Auth::id())->first();
             $validated['site_id'] = $site->site_id;
+            $validated['created_by'] = auth()->user()->id;
             $form_data = FormData::create($validated);
             $form_data['site'] = Site::where('id', $site->site_id)->first();
             return response()->json(['status' => true, 'data' => $form_data], 201);
@@ -95,6 +97,10 @@ class FormDataController extends Controller
 
     public function list(Request $request)
     {
+        $request->validate([
+            'from_date' => ['nullable', 'date'],
+            'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
+        ]);
         $user_site = DB::table('site_users')->where('user_id', Auth::id())->first();
         $datas = [];
         $site = null;
@@ -118,9 +124,13 @@ class FormDataController extends Controller
                 });
             }
 
-            $datas = $query->get();
+            $datas = $query->with(
+                [
+                    'createdBy:id,name',
+                    'resident:id,name'
+                ]
+                )->get();
         }
-
         return view('employee.log', [
             'datas' => $datas,
             'site' => $site,
@@ -133,6 +143,11 @@ class FormDataController extends Controller
 
     public function adminlog(Request $request)
     {
+        $request->validate([
+            'start_date' => ['nullable', 'date'],
+            'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
+        ]);
+
         $site_id = $request->input('site_id');
         $resident_id = $request->input('resident_id');
         $start_date = $request->input('start_date');
@@ -163,6 +178,12 @@ class FormDataController extends Controller
             ->when($end_date, function ($query) use ($end_date) {
                 $query->whereDate('log_date', '<=', $end_date);
             })
+            ->with(
+                [
+                    'createdBy:id,name',
+                    'resident:id,name'
+                ]
+                )
             ->get();
 
         // Return view with the data
@@ -198,12 +219,32 @@ class FormDataController extends Controller
             ->keyBy(fn($date) => strtolower($date->format('D'))) // sun, mon, tue, etc.
             ->map(fn($date) => $date->format('Y-m-d'));
 
+         // Get all rows in that date range
+        $weeklyData = DB::table('site_checklist_data')
+        ->whereBetween(DB::raw('DATE(log_date_time)'), [$startOfWeek, $endOfWeek])
+        ->get();
+
+        // Prepare final result: date => [temp_value, temp_value, ...]
+        $tempValuesByDate = [];
+
+        foreach ($weeklyData as $row) {
+        $dayDateMap = json_decode($row->day_date_map, true);
+        
+        foreach ($dayDateMap as $day => $date) {
+            if (!isset($tempValuesByDate[$day])) {
+                $tempValuesByDate[$day] = [];
+            }
+            $tempValuesByDate[$day] = $row->temp_value;
+        }
+        }
+
         return view('employee.logform', [
             'checklistTypes' => $checklistTypes,
             'siteChecklistSettings' => $siteChecklistSettings,
             'weekDates' => $weekDates,
             'startOfWeek' => $startOfWeek->format('Y-m-d'),
             'endOfWeek' => $endOfWeek->format('Y-m-d'),
+            'tempValuesByDate' => $tempValuesByDate
         ]);
     }
     public function show($id)

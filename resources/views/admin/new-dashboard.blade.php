@@ -105,25 +105,25 @@
                 <input type="hidden" id="logTime" name="log_time">
 
                 <label for="adls" class="required">Activities of Daily Living:</label>
-                <input type="text" id="adls" name="adls" required placeholder="E.g., Brushed teeth at 8 AM...">
+                <textarea id="adls" name="adls" required placeholder="E.g., Brushed teeth at 8 AM..."></textarea>
 
                 <label for="medical" class="required">Medical and Health Information:</label>
-                <input type="text" id="medical" name="medical" required placeholder="E.g., Took prescribed medication at 9 AM...">
+                <textarea id="medical" name="medical" required placeholder="E.g., Took prescribed medication at 9 AM..."></textarea>
 
                 <label for="behavior" class="required">Behavior and Emotional Well-being:</label>
-                <input type="text" id="behavior" name="behavior" required placeholder="E.g., SM was happy and engaged during activities...">
+                <textarea id="behavior" name="behavior" required placeholder="E.g., SM was happy and engaged during activities..."></textarea>
 
                 <label for="activities" class="required">Activities and Engagement:</label>
-                <input type="text" id="activities" name="activities" required placeholder="E.g., Participated in group art session...">
+                <textarea id="activities" name="activities" required placeholder="E.g., Participated in group art session..."></textarea>
 
                 <label for="nutrition" class="required">Nutritional Intake:</label>
-                <input type="text" id="nutrition" name="nutrition" required placeholder="E.g., Ate oatmeal and fruit for breakfast...">
+                <textarea id="nutrition" name="nutrition" required placeholder="E.g., Ate oatmeal and fruit for breakfast..."></textarea>
 
                 <label for="sleep" class="required">Sleep Patterns:</label>
-                <input type="text" id="sleep" name="sleep" required placeholder="E.g., Went to bed at 9 PM and woke up at 7 AM...">
+                <textarea id="sleep" name="sleep" required placeholder="E.g., Went to bed at 9 PM and woke up at 7 AM..."></textarea>
 
                 <label for="notes" class="required">Additional Notes:</label>
-                <input type="text" id="notes" name="notes" required placeholder="E.g., No concerns noted today...">
+                <textarea id="notes" name="notes" required placeholder="E.g., No concerns noted today..."></textarea>
 
                 <button
                     class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300"
@@ -155,7 +155,6 @@
                 </div>
                 @endif
                 <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
-                    @if ($form_data)
                     <tbody>
                         <tr>
                             <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
@@ -164,65 +163,65 @@
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Employee Type:</td>
                             <td class="p-4 text-sm text-gray-900" id="display_employeeType">
-                                {{ $form_data->employee_type }}
+                                {{ $form_data ? $form_data->employee_type : '-' }}
                             </td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Full Name:</td>
                             <td class="p-4 text-sm text-gray-900" id="display_fullName">
-                                {{ $form_data->mcls_name ? $form_data->mcls_name : $form_data->agency_employee_name }}
+                                {{ $form_data ? ($form_data->mcls_name ? $form_data->mcls_name : $form_data->agency_employee_name) : '-' }}
                             </td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Site of Work:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_site">{{ $form_data->site->name }}
+                            <td class="p-4 text-sm text-gray-900" id="display_site">{{ $form_data ? $form_data->site->name : '-' }}
                             </td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Shift:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_shift">{{ $form_data->shift }}</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_shift">{{ $form_data ? $form_data->shift : '-' }}</td>
+                        </tr>
+                        <tr>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Activities of Daily Living:
+                            </td>
+                            <td class="p-4 text-sm text-gray-900" id="display_adls">{{ $form_data ? $form_data->adls : '-' }}
+                            </td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Medical and Health Information:
                             </td>
-                            <td class="p-4 text-sm text-gray-900" id="display_medical">{{ $form_data->medical }}
+                            <td class="p-4 text-sm text-gray-900" id="display_medical">{{ $form_data ? $form_data->medical : '-' }}
                             </td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Behavior and Emotional Well-being:
                             </td>
                             <td class="p-4 text-sm text-gray-900" id="display_behavior">
-                                {{ $form_data->behavior }}
+                                {{ $form_data ? $form_data->behavior : '-' }}
                             </td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Activities and Engagement:</td>
                             <td class="p-4 text-sm text-gray-900" id="display_activities">
-                                {{ $form_data->activities }}
+                                {{ $form_data ? $form_data->activities : '-' }}
                             </td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Nutritional Intake:</td>
                             <td class="p-4 text-sm text-gray-900" id="display_nutrition">
-                                {{ $form_data->nutrition }}
+                                {{ $form_data ? $form_data->nutrition : '-' }}
                             </td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Sleep Patterns:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_sleep">{{ $form_data->sleep }}</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_sleep">{{ $form_data ? $form_data->sleep : '-' }}</td>
                         </tr>
                         <tr>
                             <td class="p-4 text-sm font-semibold text-gray-700">Additional Notes:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_notes">{{ $form_data->notes }}</td>
+                            <td class="p-4 text-sm text-gray-900" id="display_notes">{{ $form_data ? $form_data->notes : '-' }}</td>
                         </tr>
                     </tbody>
-                    @else
-                    <tbody>
-                        <tr>
-                            <td colspan="2" class="p-4 text-center text-gray-700">No log data found.</td>
-                        </tr>
-                    </tbody>
-                    @endif
+                    
                 </table>
             </div>
         </div>
@@ -351,6 +350,7 @@
                 .agency_employee_name || 'N/A';
             document.getElementById('display_site').textContent = data.site ? data.site.name : 'N/A';
             document.getElementById('display_shift').textContent = data.shift || 'N/A';
+            document.getElementById('display_adls').textContent = data.adls || 'N/A';
             document.getElementById('display_medical').textContent = data.medical || 'N/A';
             document.getElementById('display_behavior').textContent = data.behavior || 'N/A';
             document.getElementById('display_activities').textContent = data.activities || 'N/A';

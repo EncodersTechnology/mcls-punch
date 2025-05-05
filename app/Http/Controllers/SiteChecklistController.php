@@ -21,30 +21,31 @@ class SiteChecklistController extends Controller
         $site = auth()->user()->site;
         if ($site) {
             $site_id = $site->id;
-    
+
             $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay();
             $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY)->endOfDay();
 
-             // Get all rows in that date range
-        $weeklyData = DB::table('site_checklist_data')
-        ->whereBetween(DB::raw('DATE(log_date_time)'), [$startOfWeek, $endOfWeek])
-        ->get();
+            // Get all rows in that date range
+            $weeklyData = DB::table('site_checklist_data')
+                ->where('site_id',$site->id)
+                ->whereBetween(DB::raw('DATE(log_date_time)'), [$startOfWeek, $endOfWeek])
+                ->get();
 
-        // Prepare final result: date => [temp_value, temp_value, ...]
-        $tempValuesByDate = [];
+            // Prepare final result: date => [temp_value, temp_value, ...]
+            $tempValuesByDate = [];
 
-        foreach ($weeklyData as $row) {
-        $dayDateMap = json_decode($row->day_date_map, true);
-        
-        foreach ($dayDateMap as $day => $date) {
-            if (!isset($tempValuesByDate[$day])) {
-                $tempValuesByDate[$day] = [];
+            foreach ($weeklyData as $row) {
+                $dayDateMap = json_decode($row->day_date_map, true);
+
+                foreach ($dayDateMap as $day => $date) {
+                    if (!isset($tempValuesByDate[$day])) {
+                        $tempValuesByDate[$day] = [];
+                    }
+                    $tempValuesByDate[$day] = $row->temp_value;
+                }
             }
-            $tempValuesByDate[$day] = $row->temp_value;
-        }
-        }
 
-    
+
             $day_shift_checklist = DB::table('site_checklist_settings')
                 ->select('site_checklist_settings.*', 'xwalk_site_checklist_type.*')
                 ->join('xwalk_site_checklist_type', 'site_checklist_settings.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
@@ -52,7 +53,7 @@ class SiteChecklistController extends Controller
                 ->where('xwalk_site_checklist_type.checklist_type', 'DAY SHIFT CHECKLIST')
                 ->get()
                 ->groupBy('group_name');
-    
+
             $night_shift_checklist = DB::table('site_checklist_settings')
                 ->select('site_checklist_settings.*', 'xwalk_site_checklist_type.*')
                 ->join('xwalk_site_checklist_type', 'site_checklist_settings.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
@@ -60,21 +61,22 @@ class SiteChecklistController extends Controller
                 ->where('xwalk_site_checklist_type.checklist_type', 'NIGHT SHIFT CHECKLIST')
                 ->get()
                 ->groupBy('group_name');
-    
+
             $checklistDataByTask = DB::table('site_checklist_data')
-            ->where('site_id', $site_id)
-            ->whereDate('week_start', $startOfWeek->toDateString())
-            ->whereDate('week_end', $endOfWeek->toDateString())
-            ->get()
-            ->groupBy('site_checklist_id');
+                ->where('site_id', $site_id)
+                ->whereDate('week_start', $startOfWeek->toDateString())
+                ->whereDate('week_end', $endOfWeek->toDateString())
+                ->get()
+                ->groupBy('site_checklist_id');
         } else {
             $day_shift_checklist = [];
             $night_shift_checklist = [];
             $checklist_data = [];
+            $tempValuesByDate = [];
             $startOfWeek = null;
             $endOfWeek = null;
         }
-    
+
         return view('employee.sitechecklist', [
             'day_shift_checklist' => $day_shift_checklist,
             'night_shift_checklist' => $night_shift_checklist,
@@ -95,6 +97,26 @@ class SiteChecklistController extends Controller
             : Carbon::now()->startOfWeek(Carbon::SUNDAY);
 
         $weekEnd = $weekStart->copy()->endOfWeek(Carbon::SATURDAY);
+
+        // Get all rows in that date range
+        $weeklyData = DB::table('site_checklist_data')
+            ->where('site_id',$selectedSiteId)
+            ->whereBetween(DB::raw('DATE(log_date_time)'), [$weekStart, $weekEnd])
+            ->get();
+
+        // Prepare final result: date => [temp_value, temp_value, ...]
+        $tempValuesByDate = [];
+
+        foreach ($weeklyData as $row) {
+            $dayDateMap = json_decode($row->day_date_map, true);
+
+            foreach ($dayDateMap as $day => $date) {
+                if (!isset($tempValuesByDate[$day])) {
+                    $tempValuesByDate[$day] = [];
+                }
+                $tempValuesByDate[$day] = $row->temp_value;
+            }
+        }
 
         $day_shift_checklist = collect();
         $night_shift_checklist = collect();
@@ -129,6 +151,7 @@ class SiteChecklistController extends Controller
             'selectedSiteId',
             'day_shift_checklist',
             'night_shift_checklist',
+            'tempValuesByDate',
             'checklistDataByTask',
             'weekStart',
             'weekEnd'

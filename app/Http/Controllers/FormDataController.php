@@ -218,9 +218,9 @@ class FormDataController extends Controller
         $weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
             ->keyBy(fn($date) => strtolower($date->format('D'))) // sun, mon, tue, etc.
             ->map(fn($date) => $date->format('Y-m-d'));
-
          // Get all rows in that date range
         $weeklyData = DB::table('site_checklist_data')
+        ->where('site_id',$site->site_id)
         ->whereBetween(DB::raw('DATE(log_date_time)'), [$startOfWeek, $endOfWeek])
         ->get();
 

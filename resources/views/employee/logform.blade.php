@@ -154,6 +154,8 @@
     document.getElementById('site_checklist_id').addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         const selectedId = parseInt(this.value);
+        const tempValuesByDate = @json($tempValuesByDate);
+        const tempInput = document.getElementById('temp_value');
         const parentGroup = selectedOption.closest('optgroup');
         const groupLabel = parentGroup ? parentGroup.label.trim().toUpperCase() : "";
 
@@ -203,6 +205,13 @@
 
         if (targetDay) {
             selectDayButton(targetDay);
+            if (tempValuesByDate[targetDay]) {
+                        tempInput.value = tempValuesByDate[targetDay]; // first value
+                        tempInput.readOnly = true;
+                    } else {
+                        tempInput.value = '';
+                        tempInput.readOnly = false;
+                    }
         }
     });
 
@@ -225,16 +234,16 @@
                     // Handle temp value
                     if (tempValuesByDate[day]) {
                         tempInput.value = tempValuesByDate[day]; // first value
-                        tempInput.disabled = true;
+                        tempInput.readOnly = true;
                     } else {
                         tempInput.value = '';
-                        tempInput.disabled = false;
+                        tempInput.readOnly = false;
                     }
                     this.classList.add("bg-gray-800", "text-white", "border-blue-600");
                     this.classList.remove("bg-gray-100", "text-gray-700", "border-gray-300");
                 } else {
                     tempInput.value = '';
-                    tempInput.disabled = false;
+                    tempInput.readOnly = false;
                     this.classList.remove("bg-gray-800", "text-white", "border-blue-600");
                     this.classList.add("bg-gray-100", "text-gray-700", "border-gray-300");
                 }

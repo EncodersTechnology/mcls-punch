@@ -114,6 +114,12 @@
             @endforeach
 
             @endforeach
+            <tr class="section-header">
+                <td>Temperature</td>
+                @foreach (['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as $day)
+                <td>{{ isset($tempValuesByDate[$day]) ? $tempValuesByDate[$day] : ''}}</td>
+                @endforeach
+            </tr>
         </table>
     </div>
 
@@ -159,6 +165,12 @@
             @endforeach
 
             @endforeach
+            <tr class="section-header">
+                <td>Temperature</td>
+                @foreach (['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as $day)
+                <td>{{ isset($tempValuesByDate[$day]) ? $tempValuesByDate[$day] : ''}}</td>
+                @endforeach
+            </tr>
         </table>
     </div>
 

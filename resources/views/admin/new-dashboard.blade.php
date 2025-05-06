@@ -68,6 +68,10 @@
                         placeholder="John Doe">
                 </div>
 
+                <label for="shift" class="required">Date Time:</label>
+                <input type="datetime-local" id="logDateTime" name="log_datetime">
+
+
                 <label for="shift" class="required">Select Shift:</label>
                 <select id="shift" name="shift" required onchange="toggleCustomShift(this)">
                     <option value="">Select Shift</option>
@@ -83,8 +87,8 @@
                 <div id="customShiftContainer" style="display:none; margin-top: 10px;">
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <input type="text" id="customShiftName" placeholder="Custom Shift Name" style="flex: 1;">
-                        <input type="time" id="customShiftFrom" style="width: 120px;">
-                        <input type="time" id="customShiftTo" style="width: 120px;">
+                        <input type="time" id="customShiftFrom" style="width: 130px;">
+                        <input type="time" id="customShiftTo" style="width: 130px;">
                     </div>
                 </div>
 

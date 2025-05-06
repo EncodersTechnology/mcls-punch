@@ -79,9 +79,15 @@ class FormDataController extends Controller
                 'nutrition' => 'nullable|string',
                 'sleep' => 'nullable|string',
                 'notes' => 'nullable|string',
+                'log_datetime' => ['required', 'date'],
             ]);
-            $validated['log_date'] = now()->toDateString(); // returns 'YYYY-MM-DD'
-            $validated['log_time'] = now()->format('H:i:s'); // returns 'HH:MM:SS'
+
+            // Parse log_datetime into separate date and time
+            $datetime = Carbon::parse($validated['log_datetime']);
+            $validated['log_date'] = $datetime->toDateString();    // e.g., "2025-05-06"
+            $validated['log_time'] = $datetime->format('H:i:s');   // e.g., "14:30:00"
+            unset($validated['log_datetime']);
+
             $site = DB::table('site_users')->where('user_id', Auth::id())->first();
             $validated['site_id'] = $site->site_id;
             $validated['created_by'] = auth()->user()->id;
@@ -129,7 +135,7 @@ class FormDataController extends Controller
                     'createdBy:id,name',
                     'resident:id,name'
                 ]
-                )->get();
+            )->get();
         }
         return view('employee.log', [
             'datas' => $datas,
@@ -183,7 +189,7 @@ class FormDataController extends Controller
                     'createdBy:id,name',
                     'resident:id,name'
                 ]
-                )
+            )
             ->get();
 
         // Return view with the data
@@ -218,24 +224,24 @@ class FormDataController extends Controller
         $weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
             ->keyBy(fn($date) => strtolower($date->format('D'))) // sun, mon, tue, etc.
             ->map(fn($date) => $date->format('Y-m-d'));
-         // Get all rows in that date range
+        // Get all rows in that date range
         $weeklyData = DB::table('site_checklist_data')
-        ->where('site_id',$site->site_id)
-        ->whereBetween(DB::raw('DATE(log_date_time)'), [$startOfWeek, $endOfWeek])
-        ->get();
+            ->where('site_id', $site->site_id)
+            ->whereBetween(DB::raw('DATE(log_date_time)'), [$startOfWeek, $endOfWeek])
+            ->get();
 
         // Prepare final result: date => [temp_value, temp_value, ...]
         $tempValuesByDate = [];
 
         foreach ($weeklyData as $row) {
-        $dayDateMap = json_decode($row->day_date_map, true);
-        
-        foreach ($dayDateMap as $day => $date) {
-            if (!isset($tempValuesByDate[$day])) {
-                $tempValuesByDate[$day] = [];
+            $dayDateMap = json_decode($row->day_date_map, true);
+
+            foreach ($dayDateMap as $day => $date) {
+                if (!isset($tempValuesByDate[$day])) {
+                    $tempValuesByDate[$day] = [];
+                }
+                $tempValuesByDate[$day] = $row->temp_value;
             }
-            $tempValuesByDate[$day] = $row->temp_value;
-        }
         }
 
         return view('employee.logform', [

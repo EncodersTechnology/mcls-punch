@@ -1,27 +1,23 @@
 <x-app-layout>
     <style>
-        .tick {
-            color: green;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .cross {
-            color: red;
-            font-weight: bold;
-            font-size: 18px;
+        body {
+            font-family: Arial, sans-serif;
         }
 
         .container {
-            width: 90%;
+            width: 80%;
             margin: 20px auto;
+        }
+
+        h2 {
+            text-align: center;
+            text-decoration: underline;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            background-color: white;
         }
 
         th,
@@ -40,46 +36,42 @@
             background-color: #d1d1d1;
             font-weight: bold;
         }
+
+        .highlight {
+            font-weight: bold;
+        }
+
+        .monthly {
+            background-color: #cce7f0;
+        }
+
+        .important {
+            color: red;
+            font-weight: bold;
+        }
+
+        .no-input {
+            background-color: #e0e0e0;
+        }
+
+        .missing-value {
+            background-color: rgb(227, 222, 222);
+            /* Light red for empty cells */
+        }
+
+        .tick {
+            color: green;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .cross {
+            color: red;
+            font-weight: bold;
+            font-size: 18px;
+        }
     </style>
 
-    <div class="container mb-6">
-        <form method="GET" action="{{ route('admin.site.checklist') }}" class="flex flex-col md:flex-row gap-4">
-            <div class="flex-1">
-                <label for="site_id" class="block text-black font-semibold mb-2">Select Site</label>
-                <select name="site_id" id="site_id" class="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-600">
-                    <option value="">-- Choose Site --</option>
-                    @foreach ($sites as $site)
-                    <option value="{{ $site->id }}" {{ $selectedSiteId == $site->id ? 'selected' : '' }}>
-                        {{ $site->name }}
-                    </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <div class="flex-1">
-                <label for="week_start" class="block text-black font-semibold mb-2">Week Start (Only Sunday)</label>
-                <input type="date"
-                    name="week_start"
-                    id="week_start"
-                    value="{{ request('week_start', $weekStart->toDateString()) }}"
-                    class="w-full p-3 rounded-lg border-gray-400"
-                    onchange="validateSunday(this)" />
-            </div>
-
-            <div class="flex items-end">
-                <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Filter</button>
-            </div>
-        </form>
-    </div>
-
-
-    @if (!$selectedSiteId)
-    <div class="container mb-6">
-        <p class="text-red-500 text-center font-semibold">Please select a site to view the checklist data.</p>
-    </div>
-    @endif
-
-    @if ($selectedSiteId)
     <div class="container">
         <h2 style="text-align:center;">Day Shift Checklist for Week: {{ \Carbon\Carbon::parse($weekStart)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($weekEnd)->format('M d, Y') }}</h2>
         <table>
@@ -181,15 +173,16 @@
             </tr>
         </table>
     </div>
-    @endif
-</x-app-layout>
 
-<script>
-function validateSunday(input) {
-    const selectedDate = new Date(input.value);
-    if (selectedDate.getDay() !== 0) {
-        alert('Please select a Sunday as the start of the week.');
-        input.value = '';
-    }
-}
-</script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const cells = document.querySelectorAll("td");
+
+            cells.forEach(cell => {
+                if (cell.textContent.trim() === "" && !cell.hasAttribute("colspan")) {
+                    cell.classList.add("missing-value");
+                }
+            });
+        });
+    </script>
+</x-app-layout>

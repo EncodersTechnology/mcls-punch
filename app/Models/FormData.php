@@ -27,6 +27,7 @@ class FormData extends Model
         'nutrition',
         'sleep',
         'notes',
+        'created_by'
     ];
 
     public function site(){
@@ -35,5 +36,9 @@ class FormData extends Model
 
     public function resident(){
         return $this->belongsTo(Resident::class);
+    }
+
+    public function createdBy(){
+        return $this->belongsTo(User::class, 'created_by');
     }
 }

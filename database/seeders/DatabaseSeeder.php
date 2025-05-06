@@ -19,9 +19,21 @@ class DatabaseSeeder extends Seeder
         // \App\Models\User::factory(10)->create();
 
         \App\Models\User::factory()->create([
-            'name' => 'Test User',
+            'name' => 'Test Admin User',
             'email' => 'site.admin@multiculturalcls.org',
-            'password' => Hash::make('Simcoe@123')
+            'password' => Hash::make('Admin@123'),
+            'usertype' => 'admin'
+        ]);
+
+        // \App\Models\User::factory()->create([
+        //     'name' => 'Test Employee User',
+        //     'email' => 'employee@multiculturalcls.org',
+        //     'password' => Hash::make('Employee@123'),
+        //     'usertype' => 'employee'
+        // ]);
+
+        $this->call([
+            XwalkSeeder::class,
         ]);
 
         // 1. Seed 5-6 sites

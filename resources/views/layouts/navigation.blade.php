@@ -12,19 +12,44 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                
-                <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    @if(auth()->user()->usertype == 'employee')
+                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
-                    <x-nav-link :href="route('log.data')" :active="request()->routeIs('log.data')">
+                    @endif
+                    @if(auth()->user()->usertype == 'admin')
+                    <x-nav-link :href="route('admin.log.data')" :active="request()->routeIs('admin.log.data')">
                         {{ __('Resident Log Data') }}
                     </x-nav-link>    
+                    @else
+                    <x-nav-link :href="route('employee.log.data')" :active="request()->routeIs('employee.log.data')">
+                        {{ __('Resident Log Data') }}
+                    </x-nav-link>
+                    <x-nav-link :href="route('employee.log.form')" :active="request()->routeIs('employee.log.form')">
+                        {{ __('Site Log Form') }}
+                    </x-nav-link>
+                    @endif
+                    @if(auth()->user()->usertype == 'admin')
+                    <x-nav-link :href="route('admin.site.checklist')" :active="request()->routeIs('admin.site.checklist')">
+                        {{ __('Site Checklist') }}
+                    </x-nav-link>  
+                    @else
                     <x-nav-link :href="route('site.checklist')" :active="request()->routeIs('site.checklist')">
                         {{ __('Site Checklist') }}
                     </x-nav-link>  
-                    <x-nav-link :href="route('admin.resident')" :active="request()->routeIs('admin.resident')">
-                        {{ __('Admin View') }}
-                    </x-nav-link>    
+                    @endif
+                    @if(auth()->user()->usertype == 'admin')
+                        <x-nav-link :href="route('admin.checklist.management')" :active="request()->routeIs('admin.checklist.management')">
+                            {{ __('Sites Checklist Settings') }}
+                        </x-nav-link>  
+                        <x-nav-link :href="route('admin.resident')" :active="request()->routeIs('admin.resident')">
+                            {{ __('Sites and Residents') }}
+                        </x-nav-link>   
+                        <x-nav-link :href="route('site.access.index')" :active="request()->routeIs('site.access.index')">
+                            {{ __('Access Management') }}
+                        </x-nav-link>    
+                    @endif
+
                 </div>
             </div>
 
@@ -33,7 +58,7 @@
                 <x-dropdown align="right" width="48">
                     <x-slot name="trigger">
                         <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            <div>Hola ! {{ Auth::user()->name }}</div>
+                            <div>Hello ! {{ Auth::user()->name }}</div>
 
                             <div class="ms-1">
                                 <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">

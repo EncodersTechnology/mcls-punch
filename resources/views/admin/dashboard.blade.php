@@ -426,7 +426,6 @@
             document.getElementById('display_fullName').textContent = data.mcls_name ? data.mcls_name : data.agency_employee_name || 'N/A';
             document.getElementById('display_site').textContent = data.site ? data.site.name : 'N/A';
             document.getElementById('display_shift').textContent = data.shift || 'N/A';
-            document.getElementById('display_adls').textContent = data.adls || 'N/A';
             document.getElementById('display_medical').textContent = data.medical || 'N/A';
             document.getElementById('display_behavior').textContent = data.behavior || 'N/A';
             document.getElementById('display_activities').textContent = data.activities || 'N/A';
@@ -440,7 +439,6 @@
             document.getElementById('display_fullName').textContent = 'No data available';
             document.getElementById('display_site').textContent = 'No data available';
             document.getElementById('display_shift').textContent = 'No data available';
-            document.getElementById('display_adls').textContent = 'No data available';
             document.getElementById('display_medical').textContent = 'No data available';
             document.getElementById('display_behavior').textContent = 'No data available';
             document.getElementById('display_activities').textContent = 'No data available';

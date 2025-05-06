@@ -68,7 +68,7 @@
                     <tr>
                         <th class="py-3 px-6 border-b text-sm font-bold">Employee Type</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Name</th>
-                        <th class="py-3 px-6 border-b text-sm font-bold">Client Name</th>
+                        <!-- <th class="py-3 px-6 border-b text-sm font-bold">Client Name</th> -->
                         <th class="py-3 px-6 border-b text-sm font-bold">Site of Work</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Resident Name</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Shift</th>
@@ -89,7 +89,7 @@
                         <td class="py-3 px-6 border-b text-sm">
                             {{ $data->mcls_name ? $data->mcls_name : $data->agency_employee_name }}
                         </td>
-                        <td class="py-3 px-6 border-b text-sm">{{ $data->createdBy->name }}</td>
+                        <!-- <td class="py-3 px-6 border-b text-sm">{{ $data->createdBy->name }}</td> -->
                         <td class="py-3 px-6 border-b text-sm">{{ $data->site->name }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->resident->name }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->shift }}</td>

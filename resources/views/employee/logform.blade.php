@@ -53,21 +53,38 @@
                 </h2>
 
                 <!-- Checklist Type -->
-                <div>
-                    <label for="site_checklist_id" class="block text-gray-700 font-medium mb-1">
-                        Checklist Type <span class="text-red-600">*</span>
-                    </label>
-                    <select name="site_checklist_id" id="site_checklist_id" required
-                        class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300">
-                        <option value="" disabled selected>Select Checklist</option>
-                        @foreach ($checklistTypes as $type => $items)
-                        <optgroup label="{{ $type == 'DAY SHIFT CHECKLIST' ? '🌞' : '🌙' }} {{ $type }}"> {{-- Example: 🌙 Night Shift or ☀️ Day Shift --}}
-                            @foreach ($items as $checklist)
-                            <option value="{{ $checklist->id }}">{{ $type == 'DAY SHIFT CHECKLIST' ? '🌞' : '🌙' }} {{ $checklist->task_name }}</option>
-                            @endforeach
-                        </optgroup>
-                        @endforeach
-                    </select>
+                <!-- Checklist Selects -->
+                <div x-data="checklistDropdown()" x-init="init()">
+                    <!-- Shift Selector -->
+                    <div>
+                        <label for="shift_type" class="block text-gray-700 font-medium mb-1">
+                            Shift Type <span class="text-red-600">*</span>
+                        </label>
+                        <select id="shift_type" x-model="selectedShift" class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300">
+                            <option value="" disabled selected>Select Shift</option>
+                            <option value="DAY SHIFT CHECKLIST">🌞 Day Shift</option>
+                            <option value="NIGHT SHIFT CHECKLIST">🌙 Night Shift</option>
+                        </select>
+                    </div>
+
+                    <!-- Checklist Selector -->
+                    <div class="mt-4">
+                        <label for="site_checklist_id" class="block text-gray-700 font-medium mb-1">
+                            Checklist Type <span class="text-red-600">*</span>
+                        </label>
+                        <select name="site_checklist_id" id="site_checklist_id" required
+                            class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300">
+                            <option value="" disabled selected>Select Checklist</option>
+                            <template x-for="item in filteredChecklists" :key="item.id">
+                                <option
+                                    :value="item.id"
+                                    :data-label="selectedShift"
+                                    x-text="(selectedShift === 'DAY SHIFT CHECKLIST' ? '🌞 ' : '🌙 ') + item.task_name">
+                                </option>
+                            </template>
+
+                        </select>
+                    </div>
                 </div>
 
 
@@ -109,6 +126,21 @@
                     <p class="text-xs text-blue-500">The value is in °C (Celsius).</p>
                 </div>
 
+                <!-- Acknowledge Toggle -->
+                <div class="mt-4" id="ack-wrapper" style="display: none;">
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <button type="button" id="ack-btn" class="text-gray-700 bg-gray-100 border border-gray-300 px-4 py-2 rounded hover:bg-blue-100">
+                            ☐ I acknowledge that I have completed this checklist item
+                        </button>
+                        <input type="hidden" name="acknowledged" id="acknowledged" value="0">
+                    </label>
+                    <p class="text-red-600 text-sm mt-1 hidden" id="ack-error">Please acknowledge before submitting.</p>
+                </div>
+
+
+
+
+
 
                 <!-- Log Date and Time -->
                 <!-- <div>
@@ -134,6 +166,25 @@
 <script>
     const checklistSettings = @json($siteChecklistSettings);
 
+
+    function checklistDropdown() {
+        return {
+            selectedShift: '',
+            allChecklists: {},
+            filteredChecklists: [],
+            init() {
+                this.allChecklists = @json($checklistTypes);
+                this.$watch('selectedShift', (val) => {
+                    this.filteredChecklists = this.allChecklists[val] || [];
+
+                    // Clear selected checklist
+                    document.getElementById('site_checklist_id').value = "";
+                });
+            }
+        };
+    }
+
+
     function getDayAbbrFromDate(date) {
         const abbr = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
         return abbr[date.getDay()];
@@ -156,8 +207,16 @@
         const selectedId = parseInt(this.value);
         const tempValuesByDate = @json($tempValuesByDate);
         const tempInput = document.getElementById('temp_value');
+        const ackDiv = document.getElementById('ack-wrapper');
         const parentGroup = selectedOption.closest('optgroup');
-        const groupLabel = parentGroup ? parentGroup.label.trim().toUpperCase() : "";
+        // const groupLabel = parentGroup ? parentGroup.label.trim().toUpperCase() : "";
+        const groupLabel = selectedOption.getAttribute('data-label')?.trim().toUpperCase() || "";
+
+        if (['🌞 STAFF INITIAL', '🌙 STAFF INITIAL'].includes(selectedOption.text)) {
+            ackDiv.style.display = 'block';
+        } else {
+            ackDiv.style.display = 'none';
+        }
 
         // Reset all days
         const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
@@ -195,9 +254,9 @@
         // Auto-select day based on group label
         const today = new Date();
         let targetDay;
-        if (groupLabel === "🌞 DAY SHIFT CHECKLIST") {
+        if (groupLabel === "DAY SHIFT CHECKLIST") {
             targetDay = getDayAbbrFromDate(today);
-        } else if (groupLabel === "🌙 NIGHT SHIFT CHECKLIST") {
+        } else if (groupLabel === "NIGHT SHIFT CHECKLIST") {
             const yesterday = new Date();
             yesterday.setDate(today.getDate() - 1);
             targetDay = getDayAbbrFromDate(yesterday);
@@ -206,12 +265,12 @@
         if (targetDay) {
             selectDayButton(targetDay);
             if (tempValuesByDate[targetDay]) {
-                        tempInput.value = tempValuesByDate[targetDay]; // first value
-                        tempInput.readOnly = true;
-                    } else {
-                        tempInput.value = '';
-                        tempInput.readOnly = false;
-                    }
+                tempInput.value = tempValuesByDate[targetDay]; // first value
+                tempInput.readOnly = true;
+            } else {
+                tempInput.value = '';
+                tempInput.readOnly = false;
+            }
         }
     });
 
@@ -248,6 +307,41 @@
                     this.classList.add("bg-gray-100", "text-gray-700", "border-gray-300");
                 }
             });
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", function () {
+        const ackBtn = document.getElementById("ack-btn");
+        const ackInput = document.getElementById("acknowledged");
+        const ackError = document.getElementById("ack-error");
+
+        if (ackBtn) {
+            ackBtn.addEventListener("click", function () {
+                if (ackInput.value === "0") {
+                    ackInput.value = "1";
+                    ackBtn.innerHTML = "☑️ I acknowledge that I have completed this checklist item.";
+                    ackBtn.classList.remove("bg-gray-100", "text-gray-700");
+                    ackBtn.classList.add("bg-blue-600", "text-white");
+                    ackError.classList.add("hidden");
+                } else {
+                    ackInput.value = "0";
+                    ackBtn.innerHTML = "☐ I acknowledge that I have completed this checklist item.";
+                    ackBtn.classList.remove("bg-blue-600", "text-white");
+                    ackBtn.classList.add("bg-gray-100", "text-gray-700");
+                }
+            });
+        }
+
+        // Prevent form submission if acknowledge not checked
+        const form = document.getElementById("logForm");
+        form.addEventListener("submit", function (e) {
+            const ackWrapper = document.getElementById("ack-wrapper");
+            if (ackWrapper && ackWrapper.style.display !== "none") {
+                if (ackInput.value !== "1") {
+                    e.preventDefault();
+                    ackError.classList.remove("hidden");
+                }
+            }
         });
     });
 </script>

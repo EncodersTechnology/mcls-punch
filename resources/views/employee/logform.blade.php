@@ -128,13 +128,12 @@
 
                 <!-- Acknowledge Toggle -->
                 <div class="mt-4" id="ack-wrapper" style="display: none;">
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <button type="button" id="ack-btn" class="text-gray-700 bg-gray-100 border border-gray-300 px-4 py-2 rounded hover:bg-blue-100">
-                            ☐ I acknowledge that I have completed this checklist item
-                        </button>
-                        <input type="hidden" name="acknowledged" id="acknowledged" value="0">
+                    <label for="staff_initial" class="block text-gray-700 font-medium mb-1">
+                        Staff Initial <span class="text-red-600">*</span>
                     </label>
-                    <p class="text-red-600 text-sm mt-1 hidden" id="ack-error">Please acknowledge before submitting.</p>
+                    <input type="text" name="staff_initial" id="staff_initial"
+                        class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300"
+                        placeholder="Enter your initials">
                 </div>
 
 
@@ -208,14 +207,17 @@
         const tempValuesByDate = @json($tempValuesByDate);
         const tempInput = document.getElementById('temp_value');
         const ackDiv = document.getElementById('ack-wrapper');
+        const staffInitialInput = document.getElementById('staff_initial');
         const parentGroup = selectedOption.closest('optgroup');
         // const groupLabel = parentGroup ? parentGroup.label.trim().toUpperCase() : "";
         const groupLabel = selectedOption.getAttribute('data-label')?.trim().toUpperCase() || "";
 
         if (['🌞 STAFF INITIAL', '🌙 STAFF INITIAL'].includes(selectedOption.text)) {
             ackDiv.style.display = 'block';
+            staffInitialInput.required = true;
         } else {
             ackDiv.style.display = 'none';
+            staffInitialInput.required = false;
         }
 
         // Reset all days
@@ -310,13 +312,13 @@
         });
     });
 
-    document.addEventListener("DOMContentLoaded", function () {
+    document.addEventListener("DOMContentLoaded", function() {
         const ackBtn = document.getElementById("ack-btn");
         const ackInput = document.getElementById("acknowledged");
         const ackError = document.getElementById("ack-error");
 
         if (ackBtn) {
-            ackBtn.addEventListener("click", function () {
+            ackBtn.addEventListener("click", function() {
                 if (ackInput.value === "0") {
                     ackInput.value = "1";
                     ackBtn.innerHTML = "☑️ I acknowledge that I have completed this checklist item.";
@@ -334,7 +336,7 @@
 
         // Prevent form submission if acknowledge not checked
         const form = document.getElementById("logForm");
-        form.addEventListener("submit", function (e) {
+        form.addEventListener("submit", function(e) {
             const ackWrapper = document.getElementById("ack-wrapper");
             if (ackWrapper && ackWrapper.style.display !== "none") {
                 if (ackInput.value !== "1") {

@@ -80,15 +80,17 @@ class FormDataController extends Controller
                 'nutrition' => 'nullable|string',
                 'sleep' => 'nullable|string',
                 'notes' => 'nullable|string',
-                'log_datetime' => ['required', 'date'],
+                'log_date' => ['required', 'date'],
             ]);
 
-            // Parse log_datetime into separate date and time
-            $datetime = Carbon::parse($validated['log_datetime']);
-            $validated['log_date'] = $datetime->toDateString();    // e.g., "2025-05-06"
-            $validated['log_time'] = $datetime->format('H:i:s');   // e.g., "14:30:00"
-            unset($validated['log_datetime']);
 
+            // Combine the submitted date with current time
+            $submittedDate = Carbon::parse($validated['log_date'])->toDateString();
+            $currentTime = now()->format('H:i:s');
+
+            $validated['log_date'] = $submittedDate;
+            $validated['log_time'] = $currentTime;
+            
             $site = DB::table('site_users')->where('user_id', Auth::id())->first();
             $validated['site_id'] = $site->site_id;
             $validated['created_by'] = auth()->user()->id;

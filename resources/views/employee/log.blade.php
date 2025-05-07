@@ -1,26 +1,26 @@
 <x-app-layout>
-<x-slot name="header">
-    <form method="GET" action="{{ route('employee.log.data') }}" class="flex justify-center items-center mb-6 gap-4 flex-wrap">
-        <input type="date" name="from_date" value="{{ old('from_date', $from_date) }}"
-            class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700" />
+    <x-slot name="header">
+        <form method="GET" action="{{ route('employee.log.data') }}" class="flex justify-center items-center mb-6 gap-4 flex-wrap">
+            <input type="date" name="from_date" value="{{ old('from_date', $from_date) }}"
+                class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700" />
 
-        <input type="date" name="to_date" value="{{ old('to_date', $to_date) }}"
-            class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700" />
+            <input type="date" name="to_date" value="{{ old('to_date', $to_date) }}"
+                class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700" />
 
-        <input type="text" name="search" value="{{ old('search', $search) }}" placeholder="Search by name"
-            class="px-4 py-2 border rounded-md w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700 placeholder-gray-500" />
+            <input type="text" name="search" value="{{ old('search', $search) }}" placeholder="Search by name"
+                class="px-4 py-2 border rounded-md w-72 focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-gray-700 placeholder-gray-500" />
 
-        <button type="submit"
-            class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition duration-300 ease-in-out">
-            Filter
-        </button>
+            <button type="submit"
+                class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition duration-300 ease-in-out">
+                Filter
+            </button>
 
-        <a href="{{ route('employee.log.data') }}"
-            class="px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-300 ease-in-out">
-            Reset
-        </a>
-    </form>
-    @if ($errors->any())
+            <a href="{{ route('employee.log.data') }}"
+                class="px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-300 ease-in-out">
+                Reset
+            </a>
+        </form>
+        @if ($errors->any())
         <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
             <ul class="list-disc ml-5">
                 @foreach ($errors->all() as $error)
@@ -29,7 +29,7 @@
             </ul>
         </div>
         @endif
-</x-slot>
+    </x-slot>
 
 
 
@@ -49,9 +49,9 @@
                     <tr>
                         <th class="py-3 px-6 border-b text-sm font-bold">Employee Type</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Name</th>
-                        <!-- <th class="py-3 px-6 border-b text-sm font-bold">Client Name</th> -->
                         <th class="py-3 px-6 border-b text-sm font-bold">Site of Work</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Resident Name</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Shift Date</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Shift</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Medical & Health Info</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Behavior & Emotional Well-being</th>
@@ -59,35 +59,36 @@
                         <th class="py-3 px-6 border-b text-sm font-bold">Nutritional Intake</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Sleep Patterns</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Additional Notes</th>
-                        <th class="py-3 px-6 border-b text-sm font-bold">Date Time</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Entry Time</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Action</th>
                     </tr>
                 </thead>
                 <tbody id="tableBody">
                     @foreach ($datas as $data)
-                        <tr class="text-gray-700 hover:bg-gray-100">
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->employee_type }}</td>
-                            <td class="py-3 px-6 border-b text-sm">
-                                {{ $data->mcls_name ? $data->mcls_name : $data->agency_employee_name }}</td>
-                            <!-- <td class="py-3 px-6 border-b text-sm">{{ $data->createdBy->name }}</td> -->
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->site->name }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->resident->name }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->shift }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->medical }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->behavior }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->activities }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->nutrition }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->sleep }}</td>
-                            <td class="py-3 px-6 border-b text-sm">{{ $data->notes }}</td>
-                            <td class="py-3 px-6 border-b text-xs">{{ $data->log_date }} {{ $data->log_time }}</td>
-                            <td>
-                                <button type="button"
-                                    class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
-                                    onclick="openModal('modal-{{ $data->id }}')">View</button>
+                    <tr class="text-gray-700 hover:bg-gray-100">
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->employee_type }}</td>
+                        <td class="py-3 px-6 border-b text-sm">
+                            {{ $data->mcls_name ? $data->mcls_name : $data->agency_employee_name }}
+                        </td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->site->name }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->resident->name }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->log_date }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->shift }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->medical }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->behavior }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->activities }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->nutrition }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->sleep }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->notes }}</td>
+                        <td class="py-3 px-6 border-b text-xs">{{ $data->created_at }}</td>
+                        <td>
+                            <button type="button"
+                                class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
+                                onclick="openModal('modal-{{ $data->id }}')">View</button>
 
-                                @include('admin.logPopUp', ['data' => $data])
-                            </td>
-                        </tr>
+                            @include('admin.logPopUp', ['data' => $data])
+                        </td>
+                    </tr>
                     @endforeach
                 </tbody>
             </table>

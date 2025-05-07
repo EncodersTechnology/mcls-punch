@@ -33,6 +33,7 @@ class SiteChecklistController extends Controller
 
             // Prepare final result: date => [temp_value, temp_value, ...]
             $tempValuesByDate = [];
+            $staffInitialByDate = [];
 
             foreach ($weeklyData as $row) {
                 $dayDateMap = json_decode($row->day_date_map, true);
@@ -42,8 +43,10 @@ class SiteChecklistController extends Controller
                         $tempValuesByDate[$day] = [];
                     }
                     $tempValuesByDate[$day] = $row->temp_value;
+                    $staffInitialByDate[$day] = $row->staff_initial;
                 }
             }
+
 
 
             $day_shift_checklist = DB::table('site_checklist_settings')
@@ -73,6 +76,7 @@ class SiteChecklistController extends Controller
             $night_shift_checklist = [];
             $checklist_data = [];
             $tempValuesByDate = [];
+            $staffInitialByDate = [];
             $startOfWeek = null;
             $endOfWeek = null;
         }
@@ -82,6 +86,7 @@ class SiteChecklistController extends Controller
             'night_shift_checklist' => $night_shift_checklist,
             'checklistDataByTask' => $checklistDataByTask,
             'tempValuesByDate' => $tempValuesByDate,
+            'staffInitialByDate' => $staffInitialByDate,
             'weekStart' => $startOfWeek,
             'weekEnd' => $endOfWeek,
         ]);
@@ -227,6 +232,7 @@ class SiteChecklistController extends Controller
             'fri_bool' => 'nullable|boolean',
             'sat_bool' => 'nullable|boolean',
             'temp_value' => 'nullable|string|max:255',
+            'staff_initial' => 'nullable|string|max:255'
         ]);
 
         $site = auth()->user()->site;
@@ -276,6 +282,7 @@ class SiteChecklistController extends Controller
             'fri_bool' => $request->fri_bool ?? 0,
             'sat_bool' => $request->sat_bool ?? 0,
             'temp_value' => $request->temp_value,
+            'staff_initial' => $request->staff_initial,
             'log_date_time' => $now,
             'day_date_map' => json_encode($selectedDates),
             'week_start' => $startOfWeek->format('Y-m-d'),

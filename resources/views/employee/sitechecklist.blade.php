@@ -105,6 +105,10 @@
                 <td>
                     @if ($dayMarked)
                     <span class="tick">&#10004;</span>
+                    @if($row->task_name == 'STAFF INITIAL')
+                    <br>
+                    ({{ isset($staffInitialByDate[$day]) ? $staffInitialByDate[$day] : ''}})
+                    @endif
                     @else
                     <span class="cross">&#10008;</span>
                     @endif
@@ -156,6 +160,10 @@
                 <td>
                     @if ($dayMarked)
                     <span class="tick">&#10004;</span>
+                    @if($row->task_name == 'STAFF INITIAL')
+                    <br>
+                    ({{ isset($staffInitialByDate[$day]) ? $staffInitialByDate[$day] : ''}})
+                    @endif
                     @else
                     <span class="cross">&#10008;</span>
                     @endif

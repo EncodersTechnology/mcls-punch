@@ -111,6 +111,7 @@ class SiteChecklistController extends Controller
 
         // Prepare final result: date => [temp_value, temp_value, ...]
         $tempValuesByDate = [];
+        $staffInitialByDate = [];
 
         foreach ($weeklyData as $row) {
             $dayDateMap = json_decode($row->day_date_map, true);
@@ -120,6 +121,7 @@ class SiteChecklistController extends Controller
                     $tempValuesByDate[$day] = [];
                 }
                 $tempValuesByDate[$day] = $row->temp_value;
+                $staffInitialByDate[$day] = $row->staff_initial;
             }
         }
 
@@ -157,6 +159,7 @@ class SiteChecklistController extends Controller
             'day_shift_checklist',
             'night_shift_checklist',
             'tempValuesByDate',
+            'staffInitialByDate',
             'checklistDataByTask',
             'weekStart',
             'weekEnd'

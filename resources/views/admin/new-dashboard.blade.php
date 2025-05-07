@@ -68,8 +68,8 @@
                         placeholder="John Doe">
                 </div>
 
-                <label for="shift" class="required">Date Time:</label>
-                <input type="datetime-local" id="logDateTime" name="log_datetime">
+                <label for="shift" class="required">Date:</label>
+                <input type="date" id="logDateTime" name="log_date">
 
 
                 <label for="shift" class="required">Select Shift:</label>
@@ -105,8 +105,8 @@
                     @endforeach
                 </select>
 
-                <input type="hidden" id="logDate" name="log_date">
-                <input type="hidden" id="logTime" name="log_time">
+                <!-- <input type="hidden" id="logDate" name="log_date"> -->
+                <!-- <input type="hidden" id="logTime" name="log_time"> -->
 
                 <label for="adls" class="required">Activities of Daily Living:</label>
                 <textarea id="adls" name="adls" required placeholder="E.g., Brushed teeth at 8 AM..."></textarea>
@@ -305,8 +305,8 @@
             event.preventDefault(); // Prevent default form submission
 
             // Set logDate and logTime automatically
-            document.getElementById("logDate").value = new Date().toISOString().split("T")[0];
-            document.getElementById("logTime").value = new Date().toLocaleTimeString();
+            // document.getElementById("logDate").value = new Date().toISOString().split("T")[0];
+            // document.getElementById("logTime").value = new Date().toLocaleTimeString();
 
             let formData = new FormData(this);
             let errorContainer = document.getElementById("errorMessages");

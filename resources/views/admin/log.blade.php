@@ -68,9 +68,9 @@
                     <tr>
                         <th class="py-3 px-6 border-b text-sm font-bold">Employee Type</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Name</th>
-                        <!-- <th class="py-3 px-6 border-b text-sm font-bold">Client Name</th> -->
                         <th class="py-3 px-6 border-b text-sm font-bold">Site of Work</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Resident Name</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Shift Date</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Shift</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Medical & Health Info</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Behavior & Emotional Well-being</th>
@@ -78,7 +78,7 @@
                         <th class="py-3 px-6 border-b text-sm font-bold">Nutritional Intake</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Sleep Patterns</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Additional Notes</th>
-                        <th class="py-3 px-6 border-b text-sm font-bold">Date Time</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Entry Time</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Action</th>
                     </tr>
                 </thead>
@@ -89,9 +89,9 @@
                         <td class="py-3 px-6 border-b text-sm">
                             {{ $data->mcls_name ? $data->mcls_name : $data->agency_employee_name }}
                         </td>
-                        <!-- <td class="py-3 px-6 border-b text-sm">{{ $data->createdBy->name }}</td> -->
                         <td class="py-3 px-6 border-b text-sm">{{ $data->site->name }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->resident->name }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->log_date }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->shift }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->medical }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->behavior }}</td>
@@ -99,7 +99,7 @@
                         <td class="py-3 px-6 border-b text-sm">{{ $data->nutrition }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->sleep }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->notes }}</td>
-                        <td class="py-3 px-6 border-b text-sm">{{ $data->log_date }} {{ $data->log_time }}</td>
+                        <td class="py-3 px-6 border-b text-xs">{{ $data->created_at }}</td>
                         <td>
                             <button type="button"
                                 class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
@@ -107,7 +107,6 @@
 
                             @include('admin.logPopUp', ['data' => $data])
                         </td>
-
                     </tr>
                     @endforeach
                 </tbody>

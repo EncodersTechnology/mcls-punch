@@ -79,6 +79,7 @@ class FormDataController extends Controller
                 'nutrition' => 'nullable|string',
                 'sleep' => 'nullable|string',
                 'notes' => 'nullable|string',
+                'temperature' => 'nullable|string',
                 'log_date' => ['required', 'date'],
             ]);
 

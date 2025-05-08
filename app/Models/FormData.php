@@ -27,6 +27,7 @@ class FormData extends Model
         'nutrition',
         'sleep',
         'notes',
+        'temperature',
         'created_by'
     ];
 

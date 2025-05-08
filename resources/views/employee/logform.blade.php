@@ -8,6 +8,7 @@
     </x-slot>
 
     <link href="https://fonts.googleapis.com/css2?family=Muli&family=Rubik:wght@500&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
     <style>
         #section1 {
@@ -18,6 +19,10 @@
 
         form label {
             font-weight: bold;
+        }
+
+        .select2-search__field {
+            width: 100% !important;
         }
     </style>
 
@@ -72,9 +77,9 @@
                         <label for="site_checklist_id" class="block text-gray-700 font-medium mb-1">
                             Checklist Type <span class="text-red-600">*</span>
                         </label>
-                        <select name="site_checklist_id" id="site_checklist_id" required
-                            class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300">
-                            <option value="" disabled selected>Select Checklist</option>
+                        <select name="site_checklist_ids[]" id="site_checklist_id" required multiple
+                            class="w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-blue-300 select2">
+                            <!-- <option value="" disabled selected>Select Checklist</option> -->
                             <template x-for="item in filteredChecklists" :key="item.id">
                                 <option
                                     :value="item.id"
@@ -162,7 +167,18 @@
     </div>
 
 </x-app-layout>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
+    $('.select2').select2({
+        placeholder: 'Select Checklists',
+        allowClear: true,
+        width: '100%', // Important to match parent width
+        dropdownCssClass: 'tailwind-select2-dropdown', // For dropdown
+        containerCssClass: 'tailwind-select2-container' // For input box
+    });
+
+
     const checklistSettings = @json($siteChecklistSettings);
 
 
@@ -201,18 +217,17 @@
         button.classList.remove("bg-gray-100", "text-gray-700", "border-gray-300");
     }
 
-    document.getElementById('site_checklist_id').addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        const selectedId = parseInt(this.value);
+    // Wait for Select2 initialization and then add the event listener
+    $('#site_checklist_id').on('change', function() {
+        const selectedOptions = Array.from(this.selectedOptions); // Get all selected options
+        const selectedIds = selectedOptions.map(option => parseInt(option.value)); // Get IDs of selected options
         const tempValuesByDate = @json($tempValuesByDate);
         const tempInput = document.getElementById('temp_value');
         const ackDiv = document.getElementById('ack-wrapper');
         const staffInitialInput = document.getElementById('staff_initial');
-        const parentGroup = selectedOption.closest('optgroup');
-        // const groupLabel = parentGroup ? parentGroup.label.trim().toUpperCase() : "";
-        const groupLabel = selectedOption.getAttribute('data-label')?.trim().toUpperCase() || "";
 
-        if (['🌞 STAFF INITIAL', '🌙 STAFF INITIAL'].includes(selectedOption.text)) {
+        // Reset the acknowledgment div visibility and required attribute for staff initial
+        if (selectedOptions.some(option => ['🌞 STAFF INITIAL', '🌙 STAFF INITIAL'].includes(option.text))) {
             ackDiv.style.display = 'block';
             staffInitialInput.required = true;
         } else {
@@ -220,7 +235,7 @@
             staffInitialInput.required = false;
         }
 
-        // Reset all days
+        // Reset all days and disable buttons as before
         const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
         days.forEach(day => {
             const button = document.querySelector(`.day-toggle[data-day="${day}"]`);
@@ -232,49 +247,56 @@
         });
 
         // Enable/disable days based on checklist settings
-        const setting = checklistSettings.find(item => item.site_checklist_id == selectedId);
-        if (setting) {
-            days.forEach(day => {
-                const isEnabled = setting[`${day}_enabled_bool`] == 1;
-                const button = document.querySelector(`.day-toggle[data-day="${day}"]`);
-                const input = document.getElementById(`${day}_bool`);
+        selectedIds.forEach(selectedId => {
+            const setting = checklistSettings.find(item => item.site_checklist_id == selectedId);
+            if (setting) {
+                days.forEach(day => {
+                    const isEnabled = setting[`${day}_enabled_bool`] == 1;
+                    const button = document.querySelector(`.day-toggle[data-day="${day}"]`);
+                    const input = document.getElementById(`${day}_bool`);
 
-                if (isEnabled) {
-                    button.disabled = false;
-                    button.classList.remove('opacity-50', 'cursor-not-allowed');
-                    input.disabled = false;
-                } else {
-                    button.disabled = true;
-                    input.disabled = true;
-                    input.value = 0;
-                    button.classList.remove('bg-blue-500', 'text-white', 'border-blue-600');
-                    button.classList.add('bg-gray-100', 'text-gray-700', 'border-gray-300', 'opacity-50', 'cursor-not-allowed');
-                }
-            });
-        }
+                    if (isEnabled) {
+                        button.disabled = false;
+                        button.classList.remove('opacity-50', 'cursor-not-allowed');
+                        input.disabled = false;
+                    } else {
+                        button.disabled = true;
+                        input.disabled = true;
+                        input.value = 0;
+                        button.classList.remove('bg-blue-500', 'text-white', 'border-blue-600');
+                        button.classList.add('bg-gray-100', 'text-gray-700', 'border-gray-300', 'opacity-50', 'cursor-not-allowed');
+                    }
+                });
+            }
+        });
 
-        // Auto-select day based on group label
+        // Handle auto-select day based on the group label (day/night shift)
         const today = new Date();
         let targetDay;
-        if (groupLabel === "DAY SHIFT CHECKLIST") {
-            targetDay = getDayAbbrFromDate(today);
-        } else if (groupLabel === "NIGHT SHIFT CHECKLIST") {
-            const yesterday = new Date();
-            yesterday.setDate(today.getDate() - 1);
-            targetDay = getDayAbbrFromDate(yesterday);
-        }
+        selectedOptions.forEach(selectedOption => {
+            const groupLabel = selectedOption.getAttribute('data-label')?.trim().toUpperCase() || "";
 
-        if (targetDay) {
-            selectDayButton(targetDay);
-            if (tempValuesByDate[targetDay]) {
-                tempInput.value = tempValuesByDate[targetDay]; // first value
-                tempInput.readOnly = true;
-            } else {
-                tempInput.value = '';
-                tempInput.readOnly = false;
+            if (groupLabel === "DAY SHIFT CHECKLIST") {
+                targetDay = getDayAbbrFromDate(today);
+            } else if (groupLabel === "NIGHT SHIFT CHECKLIST") {
+                const yesterday = new Date();
+                yesterday.setDate(today.getDate() - 1);
+                targetDay = getDayAbbrFromDate(yesterday);
             }
-        }
+
+            if (targetDay) {
+                selectDayButton(targetDay);
+                if (tempValuesByDate[targetDay]) {
+                    tempInput.value = tempValuesByDate[targetDay]; // first value
+                    tempInput.readOnly = true;
+                } else {
+                    tempInput.value = '';
+                    tempInput.readOnly = false;
+                }
+            }
+        });
     });
+
 
     document.addEventListener("DOMContentLoaded", function() {
         const buttons = document.querySelectorAll(".day-toggle");

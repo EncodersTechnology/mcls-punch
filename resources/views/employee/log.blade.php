@@ -59,6 +59,7 @@
                         <th class="py-3 px-6 border-b text-sm font-bold">Nutritional Intake</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Sleep Patterns</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Additional Notes</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Temperature</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Entry Time</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Action</th>
                     </tr>
@@ -80,6 +81,7 @@
                         <td class="py-3 px-6 border-b text-sm">{{ $data->nutrition }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->sleep }}</td>
                         <td class="py-3 px-6 border-b text-sm">{{ $data->notes }}</td>
+                        <td class="py-3 px-6 border-b text-sm">{{ $data->temperature }}</td>
                         <td class="py-3 px-6 border-b text-xs">{{ $data->created_at }}</td>
                         <td>
                             <button type="button"

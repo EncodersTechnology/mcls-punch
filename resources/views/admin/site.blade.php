@@ -194,10 +194,12 @@
 
 <script>
 function validateSunday(input) {
-    const selectedDate = new Date(input.value);
+    const [year, month, day] = input.value.split('-');
+    const selectedDate = new Date(year, month - 1, day); // JS months are 0-based
     if (selectedDate.getDay() !== 0) {
         alert('Please select a Sunday as the start of the week.');
         input.value = '';
     }
 }
+
 </script>

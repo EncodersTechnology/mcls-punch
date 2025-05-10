@@ -98,12 +98,12 @@ class XwalkSeeder extends Seeder
             [
                 'checklist_type' => 'DAY SHIFT CHECKLIST',
                 'group_name' => 'CLEANING/COMPLIANCE',
-                'task_name' => 'COMPLETE COVID-19 SANITIZING SCHEDULE',
+                'task_name' => 'COMPLETE SANITIZING SCHEDULE',
             ],
             [
                 'checklist_type' => 'DAY SHIFT CHECKLIST',
                 'group_name' => 'DATA',
-                'task_name' => 'FILL OUT DATA ON CATALYST',
+                'task_name' => 'FILL OUT DATA',
             ],
             [
                 'checklist_type' => 'DAY SHIFT CHECKLIST',

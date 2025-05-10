@@ -129,7 +129,7 @@
                 <label for="notes" class="required">Additional Notes:</label>
                 <textarea id="notes" name="notes" required placeholder="E.g., No concerns noted today..."></textarea>
 
-                <label for="temperature" class="required">Temperature:</label>
+                <label for="temperature" class="required">Temperature(°C):</label>
                 <input type="text" id="temperature" name="temperature" required></input>
 
                 <button
@@ -228,7 +228,7 @@
                             <td class="p-4 text-sm text-gray-900" id="display_notes">{{ $form_data ? $form_data->notes : '-' }}</td>
                         </tr>
                         <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Temperature:</td>
+                            <td class="p-4 text-sm font-semibold text-gray-700">Temperature(°C):</td>
                             <td class="p-4 text-sm text-gray-900" id="display_temperature">{{ $form_data ? $form_data->temperature : '-' }}</td>
                         </tr>
                     </tbody>

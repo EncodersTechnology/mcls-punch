@@ -46,7 +46,7 @@
         <form method="GET" action="{{ route('admin.site.checklist') }}" class="flex flex-col md:flex-row gap-4">
             <div class="flex-1">
                 <label for="site_id" class="block text-black font-semibold mb-2">Select Site</label>
-                <select name="site_id" id="site_id" class="w-full p-3 rounded-lg bg-gray-800 text-white border border-gray-600">
+                <select name="site_id" id="site_id" class="w-full p-3 rounded-lg bg-white text-black border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="">-- Choose Site --</option>
                     @foreach ($sites as $site)
                     <option value="{{ $site->id }}" {{ $selectedSiteId == $site->id ? 'selected' : '' }}>
@@ -55,6 +55,7 @@
                     @endforeach
                 </select>
             </div>
+
 
             <div class="flex-1">
                 <label for="week_start" class="block text-black font-semibold mb-2">Week Start (Only Sunday)</label>
@@ -67,7 +68,13 @@
             </div>
 
             <div class="flex items-end">
-                <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition">Filter</button>
+                <button type="submit" class="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-900 transition dark:bg-gray-800 dark:hover:bg-gray-700">
+                    Filter
+                </button>
+
+
+
+
             </div>
         </form>
     </div>
@@ -193,13 +200,12 @@
 </x-app-layout>
 
 <script>
-function validateSunday(input) {
-    const [year, month, day] = input.value.split('-');
-    const selectedDate = new Date(year, month - 1, day); // JS months are 0-based
-    if (selectedDate.getDay() !== 0) {
-        alert('Please select a Sunday as the start of the week.');
-        input.value = '';
+    function validateSunday(input) {
+        const [year, month, day] = input.value.split('-');
+        const selectedDate = new Date(year, month - 1, day); // JS months are 0-based
+        if (selectedDate.getDay() !== 0) {
+            alert('Please select a Sunday as the start of the week.');
+            input.value = '';
+        }
     }
-}
-
 </script>

@@ -59,7 +59,7 @@
                         <th class="py-3 px-6 border-b text-sm font-bold">Nutritional Intake</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Sleep Patterns</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Additional Notes</th>
-                        <th class="py-3 px-6 border-b text-sm font-bold">Temperature</th>
+                        <th class="py-3 px-6 border-b text-sm font-bold">Temperature(°C)</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Entry Time</th>
                         <th class="py-3 px-6 border-b text-sm font-bold">Action</th>
                     </tr>

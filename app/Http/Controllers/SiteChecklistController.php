@@ -330,6 +330,17 @@ class SiteChecklistController extends Controller
                 $prev_week_end = $prev_week_start->copy()->addDays(6);
                 $log_date_time = $prev_week_end->format('Y-m-d').' '.'23:59:59';
 
+                $existing = DB::table('site_checklist_data')
+                ->where('site_checklist_id', $checklistId)
+                ->where('site_id', $site->id)
+                ->whereBetween('week_start', [$prev_week_start, $prev_week_end])
+                ->get();
+
+                $field = 'sat_bool';
+                 if ($existing->contains(fn($e) => $e->$field)) {
+                    return back()->withErrors(["$field" => ucfirst($day) . " already filled for checklist $checklistkeyedbyid[$checklistId] for the previous week night shift."]);
+                }
+
                 DB::table('site_checklist_data')->insert([
                 'user_id' => auth()->id(),
                 'site_id' => $site->id,

@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\Site;
 use App\Models\User;
 use App\Models\SiteUsers;
+use Grosv\LaravelPasswordlessLogin\LoginUrl;
+use Grosv\LaravelPasswordlessLogin\PasswordlessLogin;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -141,6 +144,20 @@ class SiteUsersController extends Controller
 
         // Redirect to a relevant page with a success message
         return redirect()->route('site.access.index')->with('success', 'User updated successfully.');
+    }
+
+    function magicLogin($id)
+    {
+        $user = User::find($id);
+
+        $generator = new LoginUrl($user);
+        $generator->setRedirectUrl('/dashboard'); // Override the default url to redirect to after login
+        $url = $generator->generate();
+
+        //OR Use a Facade
+        $url = PasswordlessLogin::forUser($user)->generate();
+
+        return redirect($url)->with(Auth::logout());
     }
 
     /**

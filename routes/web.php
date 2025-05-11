@@ -69,6 +69,7 @@ Route::group(['prefix' => 'admin','middleware' => ['auth', 'admin']], function()
     Route::get('/checklist-management',[SiteChecklistController::class,'settings'])->name('admin.checklist.management');
     Route::post('/admin/settings/toggle', [SiteChecklistController::class, 'toggleSetting'])->name('admin.settings.toggle');
 
+     Route::get('users/login/{id}',[SiteUsersController::class,'magicLogin'])->name('users.login');
 
     Route::resource('sites', SiteController::class);
     Route::resource('residents', ResidentController::class);

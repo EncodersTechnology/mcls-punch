@@ -107,7 +107,11 @@
                     <span class="tick">&#10004;</span>
                     @if($row->task_name == 'STAFF INITIAL')
                     <br>
-                    ({{ isset($staffInitialByDate[$day]) ? $staffInitialByDate[$day] : ''}})
+                    ({{
+                    isset($tempValuesByDateAndShift[$day]['DAY SHIFT CHECKLIST']['staff_initial'])
+                        ? $tempValuesByDateAndShift[$day]['DAY SHIFT CHECKLIST']['staff_initial']
+                        : ''
+                    }})
                     @endif
                     @else
                     <span class="cross">&#10008;</span>
@@ -121,7 +125,13 @@
             <tr class="section-header">
                 <td>Temperature</td>
                 @foreach (['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as $day)
-                <td>{{ isset($tempValuesByDate[$day]) ? $tempValuesByDate[$day] : ''}}</td>
+                <td>
+                    {{
+                isset($tempValuesByDateAndShift[$day]['DAY SHIFT CHECKLIST']['temp_value'])
+                    ? $tempValuesByDateAndShift[$day]['DAY SHIFT CHECKLIST']['temp_value']
+                    : ''
+                    }}
+                </td>
                 @endforeach
             </tr>
         </table>
@@ -162,7 +172,11 @@
                     <span class="tick">&#10004;</span>
                     @if($row->task_name == 'STAFF INITIAL')
                     <br>
-                    ({{ isset($staffInitialByDate[$day]) ? $staffInitialByDate[$day] : ''}})
+                    ({{
+                    isset($tempValuesByDateAndShift[$day]['NIGHT SHIFT CHECKLIST']['staff_initial'])
+                        ? $tempValuesByDateAndShift[$day]['NIGHT SHIFT CHECKLIST']['staff_initial']
+                        : ''
+                    }})
                     @endif
                     @else
                     <span class="cross">&#10008;</span>
@@ -176,7 +190,13 @@
             <tr class="section-header">
                 <td>Temperature</td>
                 @foreach (['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as $day)
-                <td>{{ isset($tempValuesByDate[$day]) ? $tempValuesByDate[$day] : ''}}</td>
+                <td>
+                    {{
+                isset($tempValuesByDateAndShift[$day]['NIGHT SHIFT CHECKLIST']['temp_value'])
+                    ? $tempValuesByDateAndShift[$day]['NIGHT SHIFT CHECKLIST']['temp_value']
+                    : ''
+                    }}
+                </td>
                 @endforeach
             </tr>
         </table>

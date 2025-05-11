@@ -68,7 +68,7 @@
             </div>
 
             <div class="flex items-end">
-                <button type="submit" class="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-900 transition dark:bg-gray-800 dark:hover:bg-gray-700">
+                <button style="background-color: black;" type="submit" class="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-900 transition dark:bg-gray-800 dark:hover:bg-gray-700">
                     Filter
                 </button>
 

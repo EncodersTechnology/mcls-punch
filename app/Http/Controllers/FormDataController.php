@@ -236,6 +236,14 @@ $weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
             ->whereBetween(DB::raw('DATE(log_date_time)'), [$startOfWeek, $endOfWeek])
             ->get();
 
+        $prev_sat_data = DB::table('site_checklist_data as s')
+        ->join('xwalk_site_checklist_type as x', 's.site_checklist_id', '=', 'x.id')
+            ->where('s.site_id', $site->site_id)
+            ->where('s.sat_bool',1)
+            ->where('checklist_type','NIGHT SHIFT CHECKLIST')
+            ->where(DB::raw('DATE(log_date_time)'), $prevSat->format('Y-m-d'))
+            ->first();
+
         // Prepare final result: date => [temp_value, temp_value, ...]
         $tempValuesByDate = [];
 
@@ -250,6 +258,10 @@ $weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
             }
         }
 
+        if($prev_sat_data){
+            $tempValuesByDate['prev_sat'] = $prev_sat_data->temp_value;
+        }
+        
         return view('employee.logform', [
             'checklistTypes' => $checklistTypes,
             'siteChecklistSettings' => $siteChecklistSettings,

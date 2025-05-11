@@ -303,6 +303,14 @@
                     input.value = "1";
                     button.classList.add("bg-gray-800", "text-white", "border-blue-600");
                     button.classList.remove("bg-gray-100", "text-gray-700", "border-gray-300");
+
+                     if (tempValuesByDate['prev_sat']) {
+                        tempInput.value = tempValuesByDate['prev_sat']; // first value
+                        // tempInput.readOnly = true;
+                    } else {
+                        tempInput.value = '';
+                        // tempInput.readOnly = false;
+                    }
                 } else {
                     button.style.display = 'none';
                     input.style.display = 'none';

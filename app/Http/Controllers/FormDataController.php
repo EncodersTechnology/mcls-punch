@@ -91,7 +91,7 @@ class FormDataController extends Controller
 
             $validated['log_date'] = $submittedDate;
             $validated['log_time'] = $currentTime;
-            
+
             $site = DB::table('site_users')->where('user_id', Auth::id())->first();
             $validated['site_id'] = $site->site_id;
             $validated['created_by'] = auth()->user()->id;
@@ -226,10 +226,10 @@ class FormDataController extends Controller
         $endOfWeek = $startOfWeek->copy()->addDays(6);
 
         $prevSat = Carbon::parse($startOfWeek)->subDay(); // previous Saturday
-$weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
-    ->prepend($prevSat) // add previous Saturday at the beginning
-    ->keyBy(fn($date) => $date->eq($prevSat) ? 'prev_sat' : strtolower($date->format('D')))
-    ->map(fn($date) => $date->format('Y-m-d'));
+        $weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
+            ->prepend($prevSat) // add previous Saturday at the beginning
+            ->keyBy(fn($date) => $date->eq($prevSat) ? 'prev_sat' : strtolower($date->format('D')))
+            ->map(fn($date) => $date->format('Y-m-d'));
         // Get all rows in that date range
         $weeklyData = DB::table('site_checklist_data')
             ->where('site_id', $site->site_id)
@@ -237,10 +237,10 @@ $weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
             ->get();
 
         $prev_sat_data = DB::table('site_checklist_data as s')
-        ->join('xwalk_site_checklist_type as x', 's.site_checklist_id', '=', 'x.id')
+            ->join('xwalk_site_checklist_type as x', 's.site_checklist_id', '=', 'x.id')
             ->where('s.site_id', $site->site_id)
-            ->where('s.sat_bool',1)
-            ->where('checklist_type','NIGHT SHIFT CHECKLIST')
+            ->where('s.sat_bool', 1)
+            ->where('checklist_type', 'NIGHT SHIFT CHECKLIST')
             ->where(DB::raw('DATE(log_date_time)'), $prevSat->format('Y-m-d'))
             ->first();
 
@@ -258,10 +258,10 @@ $weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
             }
         }
 
-        if($prev_sat_data){
+        if ($prev_sat_data) {
             $tempValuesByDate['prev_sat'] = $prev_sat_data->temp_value;
         }
-        
+
         return view('employee.logform', [
             'checklistTypes' => $checklistTypes,
             'siteChecklistSettings' => $siteChecklistSettings,

@@ -282,10 +282,12 @@ class SiteChecklistController extends Controller
 
         // Insert entries for each checklist
         foreach ($request->site_checklist_ids as $checklistId) {
-            if($request->sun_bool || $request->mon_bool ||
-             $request->tue_bool || $request->wed_bool ||
-             $request->thu_bool || $request->fri_bool ||
-             $request->sat_bool){
+            if (
+                $request->sun_bool || $request->mon_bool ||
+                $request->tue_bool || $request->wed_bool ||
+                $request->thu_bool || $request->fri_bool ||
+                $request->sat_bool
+            ) {
                 // Map selected dates for each checklist
                 $selectedDates = [];
                 foreach ($days as $day) {
@@ -294,7 +296,7 @@ class SiteChecklistController extends Controller
                         $selectedDates[$day] = $weekDates[$day];
                     }
                 }
-            
+
                 // Insert for each checklist ID
                 DB::table('site_checklist_data')->insert([
                     'user_id' => auth()->id(),
@@ -323,49 +325,49 @@ class SiteChecklistController extends Controller
                 ]);
             }
 
-            if($request->prev_sat_bool){
+            if ($request->prev_sat_bool) {
                 $dateMap = [];
                 $dateMap['sat'] =  $startOfWeek->subDay(1)->format('Y-m-d');
                 $prev_week_start = Carbon::parse($dateMap['sat'])->startOfWeek(Carbon::SUNDAY);
                 $prev_week_end = $prev_week_start->copy()->addDays(6);
-                $log_date_time = $prev_week_end->format('Y-m-d').' '.'23:59:59';
+                $log_date_time = $prev_week_end->format('Y-m-d') . ' ' . '23:59:59';
 
                 $existing = DB::table('site_checklist_data')
-                ->where('site_checklist_id', $checklistId)
-                ->where('site_id', $site->id)
-                ->whereBetween('week_start', [$prev_week_start, $prev_week_end])
-                ->get();
+                    ->where('site_checklist_id', $checklistId)
+                    ->where('site_id', $site->id)
+                    ->whereBetween('week_start', [$prev_week_start, $prev_week_end])
+                    ->get();
 
                 $field = 'sat_bool';
-                 if ($existing->contains(fn($e) => $e->$field)) {
+                if ($existing->contains(fn($e) => $e->$field)) {
                     return back()->withErrors(["$field" => ucfirst($day) . " already filled for checklist $checklistkeyedbyid[$checklistId] for the previous week night shift."]);
                 }
 
                 DB::table('site_checklist_data')->insert([
-                'user_id' => auth()->id(),
-                'site_id' => $site->id,
-                'site_checklist_id' => $checklistId,
-                'sun_bool' => 0,
-                'mon_bool' => 0,
-                'tue_bool' => 0,
-                'wed_bool' => 0,
-                'thu_bool' => 0,
-                'fri_bool' => 0,
-                'sat_bool' => 1,
-                'temp_value' => $request->temp_value,
-                'staff_initial' => $request->staff_initial,
-                'log_date_time' => $log_date_time,
-                'day_date_map' => json_encode($dateMap), // Store the date mapping for selected days
-                'week_start' => $prev_week_start->format('Y-m-d'),
-                'week_end' => $prev_week_end->format('Y-m-d'),
-                'created_by' => auth()->id(),
-                'updated_by' => null,
-                'deleted_by' => null,
-                'is_deleted' => 0,
-                'status' => 1,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+                    'user_id' => auth()->id(),
+                    'site_id' => $site->id,
+                    'site_checklist_id' => $checklistId,
+                    'sun_bool' => 0,
+                    'mon_bool' => 0,
+                    'tue_bool' => 0,
+                    'wed_bool' => 0,
+                    'thu_bool' => 0,
+                    'fri_bool' => 0,
+                    'sat_bool' => 1,
+                    'temp_value' => $request->temp_value,
+                    'staff_initial' => $request->staff_initial,
+                    'log_date_time' => $log_date_time,
+                    'day_date_map' => json_encode($dateMap), // Store the date mapping for selected days
+                    'week_start' => $prev_week_start->format('Y-m-d'),
+                    'week_end' => $prev_week_end->format('Y-m-d'),
+                    'created_by' => auth()->id(),
+                    'updated_by' => null,
+                    'deleted_by' => null,
+                    'is_deleted' => 0,
+                    'status' => 1,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
         }
 

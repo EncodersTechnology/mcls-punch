@@ -111,6 +111,13 @@
                         Days (Week: {{ $startOfWeek }} to {{ $endOfWeek }})
                     </label>
                     <div class="flex flex-wrap gap-2" id="day-toggle-group">
+                        <button type="button"
+                            style="display: none;"
+                            data-day="prev_sat"
+                            class="day-toggle px-4 py-2 rounded-full border border-gray-300 bg-gray-100 text-gray-700 hover:bg-blue-100 hover:border-blue-400 transition">
+                            Previous Saturday <br><small class="text-xs text-gray-600">{{ $weekDates['prev_sat'] }}</small>
+                        </button>
+                        <input style="display: none;" type="hidden" name="prev_sat_bool" id="prev_sat_bool" value="0">
                         @foreach ($dayConfigs as $abbr => $dayName)
                         <button type="button"
                             data-day="{{ $abbr }}"
@@ -285,13 +292,29 @@
             }
 
             if (targetDay) {
-                selectDayButton(targetDay);
-                if (tempValuesByDate[targetDay]) {
-                    tempInput.value = tempValuesByDate[targetDay]; // first value
-                    tempInput.readOnly = true;
+                const button = document.querySelector(`.day-toggle[data-day="prev_sat"]`);
+                const input = document.getElementById(`prev_sat_bool`);
+                if (targetDay == 'sat' && groupLabel == 'NIGHT SHIFT CHECKLIST') {
+                    button.style.display = 'block';
+                    input.style.display = 'block';
+                    if (!button || button.disabled) return;
+
+                    // Mark it as selected
+                    input.value = "1";
+                    button.classList.add("bg-gray-800", "text-white", "border-blue-600");
+                    button.classList.remove("bg-gray-100", "text-gray-700", "border-gray-300");
                 } else {
-                    tempInput.value = '';
-                    tempInput.readOnly = false;
+                    button.style.display = 'none';
+                    input.style.display = 'none';
+                     input.value = "0";
+                    selectDayButton(targetDay);
+                    if (tempValuesByDate[targetDay]) {
+                        tempInput.value = tempValuesByDate[targetDay]; // first value
+                        tempInput.readOnly = true;
+                    } else {
+                        tempInput.value = '';
+                        tempInput.readOnly = false;
+                    }
                 }
             }
         });

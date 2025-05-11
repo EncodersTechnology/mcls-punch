@@ -225,9 +225,11 @@ class FormDataController extends Controller
         $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY);
         $endOfWeek = $startOfWeek->copy()->addDays(6);
 
-        $weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
-            ->keyBy(fn($date) => strtolower($date->format('D'))) // sun, mon, tue, etc.
-            ->map(fn($date) => $date->format('Y-m-d'));
+        $prevSat = Carbon::parse($startOfWeek)->subDay(); // previous Saturday
+$weekDates = collect(CarbonPeriod::create($startOfWeek, $endOfWeek))
+    ->prepend($prevSat) // add previous Saturday at the beginning
+    ->keyBy(fn($date) => $date->eq($prevSat) ? 'prev_sat' : strtolower($date->format('D')))
+    ->map(fn($date) => $date->format('Y-m-d'));
         // Get all rows in that date range
         $weeklyData = DB::table('site_checklist_data')
             ->where('site_id', $site->site_id)

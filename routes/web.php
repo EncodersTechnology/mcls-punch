@@ -27,7 +27,7 @@ Route::get('/', function () {
     return view('auth.login');
 })->name('home');
 
-Route::get('/dashboard',[FormDataController::class,'index'])->name('dashboard');
+Route::get('/dashboard', [FormDataController::class, 'index'])->name('dashboard');
 
 
 Route::middleware('auth')->group(function () {
@@ -47,29 +47,28 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/store/site/checklist', [SiteChecklistController::class, 'store'])->name('sitechecklistdata.store');
 
-    Route::get('employee/log/data',[FormDataController::class, 'list'])->name('employee.log.data');
-    Route::get('employee/log/form',[FormDataController::class, 'residentform'])->name('employee.log.form');
-    
+    Route::get('employee/log/data', [FormDataController::class, 'list'])->name('employee.log.data');
+    Route::get('employee/log/form', [FormDataController::class, 'residentform'])->name('employee.log.form');
+
     Route::post('get-residents', [ResidentController::class, 'getResidents'])->name('get.residents');
 
-    Route::get('form-data-query',[FormDataController::class, 'query']);
-
+    Route::get('form-data-query', [FormDataController::class, 'query']);
 });
 
-Route::group(['prefix' => 'admin','middleware' => ['auth', 'admin']], function() {
+Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function () {
 
-    Route::get('/dashboard',[FormDataController::class,'index'])->name('admin.dashboard');
+    Route::get('/dashboard', [FormDataController::class, 'index'])->name('admin.dashboard');
 
-    Route::get('/log/data',[FormDataController::class, 'adminlog'])->name('admin.log.data');
+    Route::get('/log/data', [FormDataController::class, 'adminlog'])->name('admin.log.data');
 
-    Route::get('/site-resident',[SiteController::class,'index'])->name('admin.resident');
+    Route::get('/site-resident', [SiteController::class, 'index'])->name('admin.resident');
 
     Route::get('/view/site/checklist', [SiteChecklistController::class, 'indexAdmin'])->name('admin.site.checklist');
 
-    Route::get('/checklist-management',[SiteChecklistController::class,'settings'])->name('admin.checklist.management');
+    Route::get('/checklist-management', [SiteChecklistController::class, 'settings'])->name('admin.checklist.management');
     Route::post('/admin/settings/toggle', [SiteChecklistController::class, 'toggleSetting'])->name('admin.settings.toggle');
 
-     Route::get('users/login/{id}',[SiteUsersController::class,'magicLogin'])->name('users.login');
+    Route::get('users/login/{id}', [SiteUsersController::class, 'magicLogin'])->name('users.login');
 
     Route::resource('sites', SiteController::class);
     Route::resource('residents', ResidentController::class);
@@ -78,7 +77,6 @@ Route::group(['prefix' => 'admin','middleware' => ['auth', 'admin']], function()
     Route::post('add/user', [SiteUsersController::class, 'store'])->name('user.store');
     Route::put('user/{id}', [SiteUsersController::class, 'update'])->name('user.update');
     Route::delete('user/{id}', [SiteUsersController::class, 'destroy'])->name('user.destroy');
-
 });
 
-require __DIR__.'/auth.php';
+require __DIR__ . '/auth.php';

@@ -43,7 +43,7 @@
         <div class="flex justify-between mb-4">
             <button id="add-site-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add User</button>
         </div>
-        <table class="min-w-full bg-gray-800 text-white border border-gray-700">
+        <table class="min-w-full border border-gray-700">
             <thead>
                 <tr>
                     <th class="py-2 px-4 border-b text-left">SN</th>
@@ -58,7 +58,7 @@
                 $count = 1;
                 @endphp
                 @foreach ($users as $user)
-                <tr class="odd:bg-gray-700 even:bg-gray-600">
+                <tr>
                     <td class="py-2 px-4 border-b">{{ $count }}</td>
                     <td class="py-2 px-4 border-b">{{ $user->name }}</td>
                     <td class="py-2 px-4 border-b">{{ $user->email }}</td>
@@ -73,12 +73,6 @@
                             Edit
                         </button>
 
-                        <a class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600" href="{{route('users.login', $user->id)}}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="currentColor">
-                                <path d="M497 273L329 441c-15 15-41 4.5-41-17v-96H192c-13.3 0-24-10.7-24-24v-96c0-13.3 10.7-24 24-24h96v-96c0-21.5 25.9-32 41-17l168 168c9.4 9.4 9.4 24.6 0 34zM176 80v48c0 8.8-7.2 16-16 16s-16-7.2-16-16V80c0-8.8-7.2-16-16-16H80v384h48c8.8 0 16 7.2 16 16v48c0 8.8-7.2 16-16 16H64c-35.3 0-64-28.7-64-64V80C0 44.7 28.7 16 64 16h96c8.8 0 16 7.2 16 16z" />
-                            </svg>
-                        </a>
-
                         <!-- Delete Form -->
                         <form action="{{ route('user.destroy', $user->id) }}" method="POST"
                             onsubmit="return confirm('Are you sure You want to delete this user?');">
@@ -89,6 +83,12 @@
                                 Delete
                             </button>
                         </form>
+
+                        <a class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600" href="{{route('users.login', $user->id)}}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="currentColor">
+                                <path d="M497 273L329 441c-15 15-41 4.5-41-17v-96H192c-13.3 0-24-10.7-24-24v-96c0-13.3 10.7-24 24-24h96v-96c0-21.5 25.9-32 41-17l168 168c9.4 9.4 9.4 24.6 0 34zM176 80v48c0 8.8-7.2 16-16 16s-16-7.2-16-16V80c0-8.8-7.2-16-16-16H80v384h48c8.8 0 16 7.2 16 16v48c0 8.8-7.2 16-16 16H64c-35.3 0-64-28.7-64-64V80C0 44.7 28.7 16 64 16h96c8.8 0 16 7.2 16 16z" />
+                            </svg>
+                        </a>
                     </td>
 
                 </tr>

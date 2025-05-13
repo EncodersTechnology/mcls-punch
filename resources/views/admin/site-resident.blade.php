@@ -17,9 +17,9 @@
     </style>
     <div class="container mx-auto mt-8">
         @if (session('success'))
-            <div class="bg-green-500 text-white p-4 mb-4 rounded">
-                {{ session('success') }}
-            </div>
+        <div class="bg-green-500 text-white p-4 mb-4 rounded">
+            {{ session('success') }}
+        </div>
         @endif
 
         <div class="tabs">
@@ -35,7 +35,7 @@
                 <div class="flex justify-between mb-4">
                     <button id="add-site-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add Site</button>
                 </div>
-                <table class="min-w-full bg-gray-800 text-white border border-gray-700">
+                <table class="min-w-full text-black border border-gray-700">
                     <thead>
                         <tr>
                             <th class="py-2 px-4 border-b text-left">ID</th>
@@ -47,24 +47,24 @@
                     </thead>
                     <tbody>
                         @foreach ($sites as $site)
-                            <tr class="odd:bg-gray-700 even:bg-gray-600">
-                                <td class="py-2 px-4 border-b">{{ $site->id }}</td>
-                                <td class="py-2 px-4 border-b">{{ $site->name }}</td>
-                                <td class="py-2 px-4 border-b">{{ $site->shift_1 }}</td>
-                                <td class="py-2 px-4 border-b">{{ $site->shift_2 }}</td>
-                                <td class="py-2 px-4 border-b">
-                                    <button data-id="{{ $site->id }}" data-name="{{ $site->name }}"
-                                        data-shift_1="{{ $site->shift_1 }}" data-shift_2="{{ $site->shift_2 }}"
-                                        class="edit-site-btn text-blue-400 hover:text-blue-600">Edit</button> |
-                                    <form action="{{ route('sites.destroy', $site) }}" method="POST"
-                                        style="display:inline;"
-                                        onsubmit="return confirm('Are you sure You want to Delete?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:text-red-700">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
+                        <tr>
+                            <td class="py-2 px-4 border-b">{{ $site->id }}</td>
+                            <td class="py-2 px-4 border-b">{{ $site->name }}</td>
+                            <td class="py-2 px-4 border-b">{{ $site->shift_1 }}</td>
+                            <td class="py-2 px-4 border-b">{{ $site->shift_2 }}</td>
+                            <td class="py-2 px-4 border-b">
+                                <button data-id="{{ $site->id }}" data-name="{{ $site->name }}"
+                                    data-shift_1="{{ $site->shift_1 }}" data-shift_2="{{ $site->shift_2 }}"
+                                    class="edit-site-btn text-blue-400 hover:text-blue-600">Edit</button> |
+                                <form action="{{ route('sites.destroy', $site) }}" method="POST"
+                                    style="display:inline;"
+                                    onsubmit="return confirm('Are you sure You want to Delete?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-500 hover:text-red-700">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
@@ -76,34 +76,34 @@
                 <div class="flex justify-between mb-4">
                     <button id="add-resident-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add Resident</button>
                 </div>
-                <table class="min-w-full bg-gray-800 text-white border border-gray-700">
+                <table class="min-w-full text-black border border-gray-700">
                     <thead>
                         <tr>
-                            <th class="py-2 px-4 text-left bg-gray-800 text-white">ID</th>
-                            <th class="py-2 px-4 text-left bg-gray-800 text-white">Name</th>
-                            <th class="py-2 px-4 text-left bg-gray-800 text-white">Site</th>
-                            <th class="py-2 px-4 text-left bg-gray-800 text-white">Actions</th>
+                            <th class="py-2 px-4 text-left">ID</th>
+                            <th class="py-2 px-4 text-left">Name</th>
+                            <th class="py-2 px-4 text-left">Site</th>
+                            <th class="py-2 px-4 text-left">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach ($residents as $resident)
-                            <tr class="odd:bg-gray-700 even:bg-gray-600">
-                                <td class="py-2 px-4 border-b">{{ $resident->id }}</td>
-                                <td class="py-2 px-4 border-b">{{ $resident->name }}</td>
-                                <td class="py-2 px-4 border-b">{{ $resident->site->name }}</td>
-                                <td class="py-2 px-4 border-b">
-                                    <button data-id="{{ $resident->id }}" data-name="{{ $resident->name }}"
-                                        data-site="{{ $resident->site->id }}"
-                                        class="edit-resident-btn text-blue-400 hover:text-blue-600">Edit</button> |
-                                    <form action="{{ route('residents.destroy', $resident) }}" method="POST"
-                                        style="display:inline;"
-                                        onsubmit="return confirm('Are you sure You want to Delete?');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-500 hover:text-red-700">Delete</button>
-                                    </form>
-                                </td>
-                            </tr>
+                        <tr>
+                            <td class="py-2 px-4 border-b">{{ $resident->id }}</td>
+                            <td class="py-2 px-4 border-b">{{ $resident->name }}</td>
+                            <td class="py-2 px-4 border-b">{{ $resident->site->name }}</td>
+                            <td class="py-2 px-4 border-b">
+                                <button data-id="{{ $resident->id }}" data-name="{{ $resident->name }}"
+                                    data-site="{{ $resident->site->id }}"
+                                    class="edit-resident-btn text-blue-400 hover:text-blue-600">Edit</button> |
+                                <form action="{{ route('residents.destroy', $resident) }}" method="POST"
+                                    style="display:inline;"
+                                    onsubmit="return confirm('Are you sure You want to Delete?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="text-red-500 hover:text-red-700">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
                         @endforeach
                     </tbody>
                 </table>
@@ -163,7 +163,7 @@
                             class="mt-1 block w-full border-gray-500 text-white bg-gray-800 rounded-md shadow-sm"
                             required>
                             @foreach ($sites as $site)
-                                <option value="{{ $site->id }}">{{ $site->name }}</option>
+                            <option value="{{ $site->id }}">{{ $site->name }}</option>
                             @endforeach
                         </select>
                     </div>

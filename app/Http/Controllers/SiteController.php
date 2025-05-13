@@ -22,10 +22,7 @@ class SiteController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(Request $request)
-    {
-    
-    }
+    public function create(Request $request) {}
 
     /**
      * Store a newly created resource in storage.
@@ -99,7 +96,7 @@ class SiteController extends Controller
             'shift_1' => 'required|string|max:255',
             'shift_2' => 'required|string|max:255',
         ]);
-    
+
         $site->update($validated);
         $sites = Site::all();
         $residents = Resident::all();
@@ -121,6 +118,5 @@ class SiteController extends Controller
         $sites = Site::all();
         $residents = Resident::all();
         return redirect()->route('admin.resident')->with(['sites' => $sites, 'residents' => $residents, 'success' => 'Site Deleted Successfully']);
-
     }
 }

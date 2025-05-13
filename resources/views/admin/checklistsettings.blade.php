@@ -4,7 +4,7 @@
         <form method="GET" action="{{ route('admin.checklist.management') }}" class="mb-6">
             <label class="block text-sm font-medium text-black-300 mb-1">Select Site</label>
             <select name="site_id" onchange="this.form.submit()"
-                class="block w-full bg-gray-800 text-white border border-gray-500 rounded-md p-2">
+                class="block w-full text-black border border-gray-500 rounded-md p-2">
                 <option value="" disabled selected>Select a site</option>
                 @foreach ($sites as $site)
                     <option value="{{ $site->id }}" @if ($selectedSiteId == $site->id) selected @endif>

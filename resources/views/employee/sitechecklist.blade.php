@@ -73,6 +73,13 @@
     </style>
 
     <div class="container">
+        <form method="GET" action="{{ route('site.checklist') }}" style="margin-bottom: 20px; text-align: right;">
+            <label for="week">Select Week:</label>
+            <select name="week" id="week" onchange="this.form.submit()">
+                <option value="current" {{ request('week') !== 'previous' ? 'selected' : '' }}>Current Week</option>
+                <option value="previous" {{ request('week') === 'previous' ? 'selected' : '' }}>Previous Week</option>
+            </select>
+        </form>
         <h2 style="text-align:center;">Day Shift Checklist for Week: {{ \Carbon\Carbon::parse($weekStart)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($weekEnd)->format('M d, Y') }}</h2>
         <table>
             <tr class="section-header">

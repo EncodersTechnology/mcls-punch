@@ -22,8 +22,18 @@ class SiteChecklistController extends Controller
         if ($site) {
             $site_id = $site->id;
 
-            $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay();
-            $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY)->endOfDay();
+            // $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay();
+            // $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY)->endOfDay();
+
+            $week = request('week'); // accepts 'current' or 'previous'
+
+            if ($week === 'previous') {
+                $startOfWeek = Carbon::now()->subWeek()->startOfWeek(Carbon::SUNDAY)->startOfDay();
+                $endOfWeek = Carbon::now()->subWeek()->endOfWeek(Carbon::SATURDAY)->endOfDay();
+            } else {
+                $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay();
+                $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY)->endOfDay();
+            }
 
             // Get all rows in that date range
             $weeklyData = DB::table('site_checklist_data')

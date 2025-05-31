@@ -77,6 +77,9 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function 
     Route::post('add/user', [SiteUsersController::class, 'store'])->name('user.store');
     Route::put('user/{id}', [SiteUsersController::class, 'update'])->name('user.update');
     Route::delete('user/{id}', [SiteUsersController::class, 'destroy'])->name('user.destroy');
+
+    Route::post('/user/transfer-sites', [SiteUsersController::class, 'transferSupervisorSites'])->name('user.transfer-sites');
+    Route::get('/user/supervisor-sites/{id}', [SiteUsersController::class, 'getSupervisorSites'])->name('user.supervisor-sites');
 });
 
 require __DIR__ . '/auth.php';

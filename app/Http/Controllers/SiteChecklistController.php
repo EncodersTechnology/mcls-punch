@@ -91,6 +91,7 @@ class SiteChecklistController extends Controller
             $day_shift_checklist = [];
             $night_shift_checklist = [];
             $checklist_data = [];
+            $checklistDataByTask = [];
             $tempValuesByDateAndShift = [];
             $startOfWeek = null;
             $endOfWeek = null;

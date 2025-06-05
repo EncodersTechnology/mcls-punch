@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -16,26 +16,6 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
-
-        \App\Models\User::factory()->create([
-            'name' => 'Test Admin User',
-            'email' => 'site.admin@multiculturalcls.org',
-            'password' => Hash::make('Admin@123'),
-            'usertype' => 'admin'
-        ]);
-
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test Employee User',
-        //     'email' => 'employee@multiculturalcls.org',
-        //     'password' => Hash::make('Employee@123'),
-        //     'usertype' => 'employee'
-        // ]);
-
-        $this->call([
-            XwalkSeeder::class,
-        ]);
-
         // 1. Seed 5-6 sites
         $sites = [];
         for ($i = 1; $i <= 6; $i++) {
@@ -46,6 +26,74 @@ class DatabaseSeeder extends Seeder
             ]);
             $sites[] = $siteId;
         }
+
+        // Create Admin and Siteadmin users (not assigned to sites)
+        User::factory()->create([
+            'name' => 'Super Admin',
+            'email' => 'superadmin@multiculturalcls.org',
+            'usertype' => 'admin',
+            'password' => Hash::make('Admin@123'),
+        ]);
+
+        User::factory()->create([
+            'name' => 'Site Admin',
+            'email' => 'siteadmin@multiculturalcls.org',
+            'usertype' => 'siteadmin',
+            'password' => Hash::make('Admin@123'),
+        ]);
+
+        // Create Directors
+        $directors = User::factory()->count(2)->create([
+            'usertype' => 'director',
+            'password' => Hash::make('Password@123')
+        ]);
+
+        // Create Managers and assign them to Directors
+        $managers = collect();
+        foreach ($directors as $director) {
+            $managers = $managers->merge(
+                User::factory()->count(2)->create([
+                    'usertype' => 'manager',
+                    'manager_id' => $director->id,
+                    'password' => Hash::make('Password@123')
+                ])
+            );
+        }
+
+        // Create Supervisors and assign to Managers
+        $supervisors = collect();
+        foreach ($managers as $manager) {
+            $supervisors = $supervisors->merge(
+                User::factory()->count(2)->create([
+                    'usertype' => 'supervisor',
+                    'manager_id' => $manager->id,
+                    'password' => Hash::make('Password@123')
+                ])
+            );
+        }
+
+        // Assign supervisors to random sites (1-2 sites)
+        foreach ($supervisors as $supervisor) {
+            $siteIds = collect(range(1, 6))->random(rand(1, 2));
+            foreach ($siteIds as $siteId) {
+                $supervisor->assignSite($siteId);
+            }
+        }
+
+        // Create Employees and assign them to exactly one site
+        $employees = User::factory()->count(10)->create([
+            'usertype' => 'employee',
+            'password' => Hash::make('Password@123')
+        ]);
+
+        foreach ($employees as $employee) {
+            $siteId = collect(range(1, 6))->random(1)[0]; // Select exactly one site
+            $employee->assignSite($siteId);
+        }
+
+        $this->call([
+            XwalkSeeder::class,
+        ]);
 
         // 2. Seed 8-9 residents and map them to random sites
         $residents = [];

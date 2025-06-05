@@ -21,9 +21,12 @@ class SiteUsersController extends Controller
      */
     public function index()
     {
-        // $currentUser = Auth::user();
-
         $currentUser = User::where('id', auth()->user()->id)->first();
+
+        // Restrict access - employees cannot see user lists
+        if ($currentUser->usertype === 'employee') {
+            return redirect()->back()->with('error', 'You do not have permission to view users.');
+        }
 
         // Get users based on current user's permissions
         $users = $this->getUsersBasedOnRole($currentUser);
@@ -39,20 +42,45 @@ class SiteUsersController extends Controller
 
     private function getUsersBasedOnRole($currentUser)
     {
+        $accessibleSiteIds = $currentUser->getAccessibleSites()->pluck('id');
+
         switch ($currentUser->usertype) {
             case 'admin':
-                return User::where('usertype', '!=', 'admin')->with('site', 'manager')->get();
+                // Admin can see all users except other admins
+                return User::where('usertype', '!=', 'admin')->with('sites', 'manager')->get();
+                
             case 'siteadmin':
-                return User::whereIn('usertype', ['director', 'manager', 'supervisor', 'employee'])->with('site', 'manager')->get();
+                // Siteadmin can see directors, managers, supervisors, and employees of their sites
+                return User::whereIn('usertype', ['director', 'manager', 'supervisor', 'employee'])
+                    ->where(function ($query) use ($accessibleSiteIds) {
+                        $query->whereIn('usertype', ['director', 'manager'])
+                              ->orWhereHas('sites', function ($q) use ($accessibleSiteIds) {
+                                  $q->whereIn('site_id', $accessibleSiteIds);
+                              });
+                    })
+                    ->with('sites', 'manager')->get();
+                    
             case 'director':
-                return User::whereIn('usertype', ['manager', 'supervisor', 'employee'])
+                // Director can only see managers and supervisors under them
+                return User::whereIn('usertype', ['manager', 'supervisor'])
                     ->where(function ($query) use ($currentUser) {
                         $query->where('manager_id', $currentUser->id)
                             ->orWhereIn('manager_id', $currentUser->subordinates()->pluck('id'));
-                    })->with('site', 'manager')->get();
+                    })->with('sites', 'manager')->get();
+                    
             case 'manager':
-                return User::whereIn('usertype', ['supervisor', 'employee'])
-                    ->where('manager_id', $currentUser->id)->with('site', 'manager')->get();
+                // Manager can see supervisors under them
+                return User::where('usertype', 'supervisor')
+                    ->where('manager_id', $currentUser->id)->with('sites', 'manager')->get();
+                    
+            case 'supervisor':
+                // Supervisor can see employees of their site
+                $supervisorSiteIds = $currentUser->sites->pluck('id');
+                return User::where('usertype', 'employee')
+                    ->whereHas('sites', function ($query) use ($supervisorSiteIds) {
+                        $query->whereIn('site_id', $supervisorSiteIds);
+                    })->with('sites', 'manager')->get();
+                    
             default:
                 return collect();
         }
@@ -62,24 +90,28 @@ class SiteUsersController extends Controller
     {
         switch ($currentUser->usertype) {
             case 'admin':
+                // Admin can create siteadmin, director, manager, supervisor, employee
                 return ['siteadmin', 'director', 'manager', 'supervisor', 'employee'];
+                
             case 'siteadmin':
+                // Siteadmin can create director, manager, supervisor, employee (not siteadmin)
                 return ['director', 'manager', 'supervisor', 'employee'];
+                
             case 'director':
-                return ['manager', 'supervisor', 'employee'];
+                // Director can create manager, supervisor
+                return ['manager', 'supervisor'];
+                
             case 'manager':
-                return ['supervisor', 'employee'];
+                // Manager can create supervisor
+                return ['supervisor'];
+                
+            case 'supervisor':
+                // Supervisor can create employee
+                return ['employee'];
+                
             default:
                 return [];
         }
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -89,6 +121,11 @@ class SiteUsersController extends Controller
     {
         $currentUser = Auth::user();
         $manageableTypes = $this->getManageableUserTypes($currentUser);
+
+        // Prevent siteadmin from creating another siteadmin
+        if ($currentUser->usertype === 'siteadmin' && $request->usertype === 'siteadmin') {
+            return redirect()->back()->with('error', 'You do not have permission to create a siteadmin.')->withInput();
+        }
 
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
@@ -118,7 +155,7 @@ class SiteUsersController extends Controller
             'manager_id' => $managerId,
         ]);
 
-        // Create site association if needed
+        // Create site association for supervisor and employee
         if (in_array($request->usertype, ['supervisor', 'employee']) && $request->site_id) {
             SiteUsers::create([
                 'user_id' => $user->id,
@@ -127,22 +164,6 @@ class SiteUsersController extends Controller
         }
 
         return redirect()->route('site.access.index')->with('success', 'User created successfully.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(SiteUsers $siteUsers)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(SiteUsers $siteUsers)
-    {
-        //
     }
 
     /**
@@ -155,6 +176,11 @@ class SiteUsersController extends Controller
 
         if (!$currentUser->canManage($user)) {
             return redirect()->back()->with('error', 'You do not have permission to edit this user.');
+        }
+
+        // Prevent siteadmin from updating a user to siteadmin
+        if ($currentUser->usertype === 'siteadmin' && $request->usertype === 'siteadmin') {
+            return redirect()->back()->with('error', 'You do not have permission to update a user to siteadmin.')->withInput();
         }
 
         $manageableTypes = $this->getManageableUserTypes($currentUser);
@@ -201,14 +227,41 @@ class SiteUsersController extends Controller
     private function determineManagerId($usertype, $requestManagerId, $currentUser)
     {
         switch ($usertype) {
+            case 'siteadmin':
+                // Siteadmin has no manager and can only be created by admin
+                if ($currentUser->usertype !== 'admin') {
+                    abort(403, 'Only admins can create siteadmin users.');
+                }
+                return null;
+                
             case 'director':
-                return $currentUser->usertype === 'admin' ? null : $currentUser->id;
+                // Director's manager depends on who's creating them
+                if ($currentUser->usertype === 'admin' || $currentUser->usertype === 'siteadmin') {
+                    return $requestManagerId; // Can select a manager or none
+                }
+                return $currentUser->id;
+                
             case 'manager':
-                return $currentUser->usertype === 'director' ? $currentUser->id : $requestManagerId;
+                // Manager must have a director as manager
+                if ($currentUser->usertype === 'director') {
+                    return $currentUser->id;
+                } elseif (in_array($currentUser->usertype, ['admin', 'siteadmin'])) {
+                    return $requestManagerId; // Must select a director
+                }
+                return $requestManagerId;
+                
             case 'supervisor':
-                return $requestManagerId ?: $currentUser->id;
+                // Supervisor must have a manager as manager
+                if ($currentUser->usertype === 'manager') {
+                    return $currentUser->id;
+                } else {
+                    return $requestManagerId; // Must select a manager
+                }
+                
             case 'employee':
-                return $requestManagerId ?: $currentUser->id;
+                // Employee doesn't need a manager in the hierarchy (site-based)
+                return null;
+                
             default:
                 return null;
         }
@@ -252,6 +305,7 @@ class SiteUsersController extends Controller
     {
         $currentUser = Auth::user();
 
+        // Only manager, director, siteadmin, and admin can transfer sites
         if (!in_array($currentUser->usertype, ['manager', 'director', 'siteadmin', 'admin'])) {
             return redirect()->back()->with('error', 'You do not have permission to transfer sites.');
         }
@@ -270,6 +324,17 @@ class SiteUsersController extends Controller
         $fromSupervisor = User::findOrFail($request->from_supervisor_id);
         $toSupervisor = User::findOrFail($request->to_supervisor_id);
 
+        // Verify both users are supervisors
+        if ($fromSupervisor->usertype !== 'supervisor' || $toSupervisor->usertype !== 'supervisor') {
+            return redirect()->back()->with('error', 'Both users must be supervisors.');
+        }
+
+        // Verify the current user has access to the sites being transferred
+        $accessibleSiteIds = $currentUser->getAccessibleSites()->pluck('id');
+        if (!collect($request->site_ids)->every(fn($siteId) => $accessibleSiteIds->contains($siteId))) {
+            return redirect()->back()->with('error', 'You do not have permission to transfer one or more selected sites.');
+        }
+
         // Transfer site associations
         foreach ($request->site_ids as $siteId) {
             SiteUsers::where('user_id', $fromSupervisor->id)
@@ -283,14 +348,19 @@ class SiteUsersController extends Controller
     public function getSupervisorSites($id)
     {
         $supervisor = User::findOrFail($id);
+        
+        // Verify user is a supervisor
+        if ($supervisor->usertype !== 'supervisor') {
+            return response()->json(['error' => 'User is not a supervisor'], 400);
+        }
+        
         $sites = $supervisor->sites;
         return response()->json($sites);
     }
 
-    function magicLogin($id)
+   function magicLogin($id)
     {
         $user = User::find($id);
-
         $generator = new LoginUrl($user);
         $generator->setRedirectUrl('/dashboard'); // Override the default url to redirect to after login
         $url = $generator->generate();
@@ -304,9 +374,15 @@ class SiteUsersController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(SiteUsers $siteUsers, $id)
+    public function destroy($id)
     {
         $user = User::findOrFail($id);
+        $currentUser = Auth::user();
+
+        // Check if current user can manage this user
+        if (!$currentUser->canManage($user)) {
+            return redirect()->back()->with('error', 'You do not have permission to delete this user.');
+        }
 
         // Delete related SiteUsers record
         SiteUsers::where('user_id', $id)->delete();

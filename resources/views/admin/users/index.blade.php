@@ -40,7 +40,7 @@
 
         <div class="flex justify-between mb-4">
             <button id="add-site-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add User</button>
-            @if(in_array(auth()->user()->usertype, ['manager', 'director', 'admin', 'superadmin']))
+            @if(in_array(auth()->user()->usertype, ['manager', 'director', 'siteadmin', 'admin']))
             <button id="transfer-sites-btn" class="bg-purple-500 text-white px-4 py-2 rounded">Transfer Sites</button>
             @endif
         </div>
@@ -53,7 +53,7 @@
                     <th class="py-2 px-4 border-b text-left">Email</th>
                     <th class="py-2 px-4 border-b text-left">User Type</th>
                     <th class="py-2 px-4 border-b text-left">Manager</th>
-                    <th class="py-2 px-4 border-b text-left">Site</th>
+                    <th class="py-2 px-4 border-b text-left">Sites</th>
                     <th class="py-2 px-4 border-b text-left">Action</th>
                 </tr>
             </thead>
@@ -70,13 +70,20 @@
                             @elseif($user->usertype == 'manager') bg-blue-100 text-blue-800
                             @elseif($user->usertype == 'supervisor') bg-green-100 text-green-800
                             @elseif($user->usertype == 'admin') bg-red-100 text-red-800
+                            @elseif($user->usertype == 'siteadmin') bg-orange-100 text-orange-800
                             @else bg-gray-100 text-gray-800
                             @endif">
                             {{ ucfirst($user->usertype) }}
                         </span>
                     </td>
                     <td class="py-2 px-4 border-b">{{ $user->manager ? $user->manager->name : 'N/A' }}</td>
-                    <td class="py-2 px-4 border-b">{{ $user->site ? $user->site->name : 'N/A'}}</td>
+                    <td class="py-2 px-4 border-b">
+                        @if($user->sites->isNotEmpty())
+                            {{ $user->sites->pluck('name')->implode(', ') }}
+                        @else
+                            N/A
+                        @endif
+                    </td>
                     <td class="flex gap-2">
                         <button type="button"
                             class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
@@ -85,13 +92,13 @@
                             data-email="{{ $user->email }}"
                             data-usertype="{{ $user->usertype }}"
                             data-manager_id="{{ $user->manager_id }}"
-                            data-site_id="{{ $user->site ? $user->site->id : '' }}"
+                            data-site_id="{{ $user->sites->first() ? $user->sites->first()->id : '' }}"
                             onclick="openEditModal(this)">
                             Edit
                         </button>
 
                         <form action="{{ route('user.destroy', $user->id) }}" method="POST"
-                            onsubmit="return confirm('Are you sure You want to delete this user?');">
+                            onsubmit="return confirm('Are you sure you want to delete this user?');">
                             @csrf
                             @method('DELETE')
                             <button type="submit"
@@ -100,7 +107,7 @@
                             </button>
                         </form>
 
-                        <a class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600" href="{{route('users.login', $user->id)}}">
+                        <a class="bg-green-500 text-white px-3 py-1 text-sm rounded hover:bg-green-600" href="{{ route('users.login', $user->id) }}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" fill="currentColor">
                                 <path d="M497 273L329 441c-15 15-41 4.5-41-17v-96H192c-13.3 0-24-10.7-24-24v-96c0-13.3 10.7-24 24-24h96v-96c0-21.5 25.9-32 41-17l168 168c9.4 9.4 9.4 24.6 0 34zM176 80v48c0 8.8-7.2 16-16 16s-16-7.2-16-16V80c0-8.8-7.2-16-16-16H80v384h48c8.8 0 16 7.2 16 16v48c0 8.8-7.2 16-16 16H64c-35.3 0-64-28.7-64-64V80C0 44.7 28.7 16 64 16h96c8.8 0 16 7.2 16 16z" />
                             </svg>
@@ -255,7 +262,7 @@
         @endif
 
         <!-- Transfer Sites Modal -->
-        @if(in_array(auth()->user()->usertype, ['manager', 'director', 'admin', 'superadmin']))
+        @if(in_array(auth()->user()->usertype, ['manager', 'director', 'siteadmin', 'admin']))
         <div id="transfer-sites-modal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex justify-center items-center">
             <div class="bg-white p-6 rounded-lg shadow-lg w-1/2">
                 <h3 class="text-lg font-semibold mb-4 text-black">Transfer Sites Between Supervisors</h3>

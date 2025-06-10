@@ -31,18 +31,22 @@
         @endif
     </x-slot>
 
-
-
     <link href="https://fonts.googleapis.com/css2?family=Muli&family=Rubik:wght@500&display=swap" rel="stylesheet">
 
     <div class="container mx-auto mt-8 px-6">
-
         <!-- Demo Table -->
         <div class="overflow-x-auto shadow-lg bg-white rounded-lg">
             <table class="min-w-full bg-white border border-gray-300 text-left rounded-md" id="residentLogTable">
                 <thead class="text-white bg-gradient-to-r from-blue-500 to-purple-600">
                     <tr>
-                        <th colspan="11">Log data for site {{ $site->name }}</th>
+                        <th colspan="11">
+                            Log data for site(s) 
+                            @if (is_a($site, 'Illuminate\Database\Eloquent\Collection'))
+                                {{ $site->pluck('name')->implode(', ') }}
+                            @else
+                                {{ $site ? $site->name : 'N/A' }}
+                            @endif
+                        </th>
                     </tr>
                 </thead>
                 <thead class="text-white bg-gradient-to-r from-blue-500 to-purple-600">
@@ -95,29 +99,16 @@
                 </tbody>
             </table>
         </div>
-
     </div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
 
     <script>
-        // Search functionality
-        // const searchInput = document.getElementById('searchInput');
-        // searchInput.addEventListener('input', function() {
-        //     const query = searchInput.value.toLowerCase();
-        //     const rows = document.querySelectorAll('#tableBody tr');
-        //     rows.forEach(row => {
-        //         const cells = row.getElementsByTagName('td');
-        //         let isMatch = false;
-        //         Array.from(cells).forEach(cell => {
-        //             if (cell.innerText.toLowerCase().includes(query)) {
-        //                 isMatch = true;
-        //             }
-        //         });
-        //         row.style.display = isMatch ? '' : 'none';
-        //     });
-        // });
+        // Note: The search input functionality is commented out in the original code.
+        // If you want to enable client-side search, uncomment and ensure it works with the server-side search.
 
-        document.getElementById('exportBtn').addEventListener('click', function() {
+        // Export to Excel
+        document.getElementById('exportBtn')?.addEventListener('click', function() {
             const table = document.getElementById('residentLogTable');
 
             const wb = XLSX.utils.table_to_book(table, {

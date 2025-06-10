@@ -111,14 +111,21 @@ class FormDataController extends Controller
             'from_date' => ['nullable', 'date'],
             'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
         ]);
-        $user_site = DB::table('site_users')->where('user_id', Auth::id())->first();
+
+        $currentUser = Auth::user();
+        $accessibleSiteIds = $currentUser->getAccessibleSites()->pluck('id');
         $datas = [];
         $site = null;
 
-        if ($user_site) {
-            $site = Site::where('id', $user_site->site_id)->first();
+        if ($accessibleSiteIds->isNotEmpty()) {
+            // For employees, fetch only their single site; for others, fetch all accessible sites
+            if ($currentUser->usertype === 'employee') {
+                $site = Site::where('id', $accessibleSiteIds->first())->first();
+            } else {
+                $site = Site::whereIn('id', $accessibleSiteIds)->get();
+            }
 
-            $query = FormData::where('site_id', $user_site->site_id);
+            $query = FormData::whereIn('site_id', $accessibleSiteIds);
 
             // Apply date filter
             if ($request->filled('from_date') && $request->filled('to_date')) {
@@ -130,17 +137,16 @@ class FormDataController extends Controller
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
                     $q->where('mcls_name', 'like', "%$search%")
-                        ->orWhere('agency_employee_name', 'like', "%$search%");
+                      ->orWhere('agency_employee_name', 'like', "%$search%");
                 });
             }
 
-            $datas = $query->with(
-                [
-                    'createdBy:id,name',
-                    'resident:id,name'
-                ]
-            )->get();
+            $datas = $query->with([
+                'createdBy:id,name',
+                'resident:id,name'
+            ])->get();
         }
+
         return view('employee.log', [
             'datas' => $datas,
             'site' => $site,

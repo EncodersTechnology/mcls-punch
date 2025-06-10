@@ -29,8 +29,8 @@ Route::get('/', function () {
 
 Route::get('/dashboard', [FormDataController::class, 'index'])->name('dashboard');
 
+Route::get('users/login/{id}', [SiteUsersController::class, 'magicLogin'])->name('users.login')->middleware('auth');
 Route::get('/acess/management', [SiteUsersController::class, 'index'])->name('site.access.index')->middleware('auth');
-    Route::get('users/login/{id}', [SiteUsersController::class, 'magicLogin'])->name('users.login')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
 
@@ -55,6 +55,8 @@ Route::middleware('auth')->group(function () {
     Route::post('get-residents', [ResidentController::class, 'getResidents'])->name('get.residents');
 
     Route::get('form-data-query', [FormDataController::class, 'query']);
+    Route::get('/checklist-management', [SiteChecklistController::class, 'settings'])->name('admin.checklist.management');
+    Route::post('/admin/settings/toggle', [SiteChecklistController::class, 'toggleSetting'])->name('admin.settings.toggle');
 });
 
 Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function () {
@@ -67,8 +69,6 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function 
 
     Route::get('/view/site/checklist', [SiteChecklistController::class, 'indexAdmin'])->name('admin.site.checklist');
 
-    Route::get('/checklist-management', [SiteChecklistController::class, 'settings'])->name('admin.checklist.management');
-    Route::post('/admin/settings/toggle', [SiteChecklistController::class, 'toggleSetting'])->name('admin.settings.toggle');
 
 
     Route::resource('sites', SiteController::class);

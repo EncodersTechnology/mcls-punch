@@ -69,9 +69,17 @@ class SiteUsersController extends Controller
                     })->with('sites', 'manager')->get();
                     
             case 'manager':
-                // Manager can see supervisors under them
-                return User::where('usertype', 'supervisor')
-                    ->where('manager_id', $currentUser->id)->with('sites', 'manager')->get();
+                 // Manager can see supervisors under them and employees within their accessible sites
+                $supervisors = User::where('usertype', 'supervisor')
+                    ->where('manager_id', $currentUser->id)
+                    ->with('sites', 'manager');
+                    
+                $employees = User::where('usertype', 'employee')
+                    ->whereHas('sites', function ($query) use ($accessibleSiteIds) {
+                        $query->whereIn('site_id', $accessibleSiteIds);
+                    })->with('sites', 'manager');
+                    
+                return $supervisors->union($employees)->get();
                     
             case 'supervisor':
                 // Supervisor can see employees of their site

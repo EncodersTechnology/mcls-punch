@@ -226,6 +226,39 @@ class XwalkSeeder extends Seeder
                 'task_name' => 'STAFF INITIAL',
             ]
 
-            ]);
+        ]);
+
+        $xwalk_checklist_types = DB::table('xwalk_site_checklist_type')->get();
+        $sites = DB::table('sites')->get();
+
+        $now = now(); // for timestamps
+
+        $insertData = [];
+
+        foreach ($sites as $site) {
+            foreach ($xwalk_checklist_types as $checklistType) {
+                $insertData[] = [
+                    'site_id' => $site->id,
+                    'site_checklist_id' => $checklistType->id,
+                    'sun_enabled_bool' => 1,
+                    'mon_enabled_bool' => 1,
+                    'tue_enabled_bool' => 1,
+                    'wed_enabled_bool' => 1,
+                    'thu_enabled_bool' => 1,
+                    'fri_enabled_bool' => 1,
+                    'sat_enabled_bool' => 1,
+                    'created_by' => null,
+                    'updated_by' => null,
+                    'deleted_by' => null,
+                    'is_deleted' => 0,
+                    'status' => 1,
+                    'created_at' => $now,
+                    'updated_at' => $now,
+                ];
+            }
+        }
+
+        // Bulk insert for performance
+        DB::table('site_checklist_settings')->insert($insertData);
     }
 }

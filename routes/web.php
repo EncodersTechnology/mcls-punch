@@ -31,6 +31,7 @@ Route::get('/dashboard', [FormDataController::class, 'index'])->name('dashboard'
 
 Route::get('users/login/{id}', [SiteUsersController::class, 'magicLogin'])->name('users.login')->middleware('auth');
 Route::get('/acess/management', [SiteUsersController::class, 'index'])->name('site.access.index')->middleware('auth');
+Route::put('/log/data/{id}', [FormDataController::class, 'updateLogData'])->name('log.update')->middleware('auth');
 
 Route::middleware('auth')->group(function () {
 

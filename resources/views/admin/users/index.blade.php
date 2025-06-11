@@ -48,7 +48,7 @@
         <table class="min-w-full border border-gray-700">
             <thead>
                 <tr>
-                    <th class="py-2 px-4 border-b text-left">SN</th>
+                    <th class="py-2 px-4 border-b text-left">S.N.</th>
                     <th class="py-2 px-4 border-b text-left">Name</th>
                     <th class="py-2 px-4 border-b text-left">Email</th>
                     <th class="py-2 px-4 border-b text-left">User Type</th>

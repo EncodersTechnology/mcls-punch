@@ -40,9 +40,9 @@
 
         <div class="flex justify-between mb-4">
             <button id="add-site-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add User</button>
-            @if(in_array(auth()->user()->usertype, ['manager', 'director', 'siteadmin', 'admin']))
+            <!-- @if(in_array(auth()->user()->usertype, ['manager', 'director', 'siteadmin', 'admin']))
             <button id="transfer-sites-btn" class="bg-purple-500 text-white px-4 py-2 rounded">Transfer Sites</button>
-            @endif
+            @endif -->
         </div>
 
         <table class="min-w-full border border-gray-700">
@@ -119,147 +119,149 @@
             </tbody>
         </table>
 
-        <!-- Add User Modal -->
-        <div id="site-modal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex justify-center items-center">
-            <div class="bg-white p-6 rounded-lg shadow-lg w-1/3 max-h-screen overflow-y-auto">
-                <h3 class="text-lg font-semibold mb-4 text-black">Add User</h3>
-                <form id="site-form" action="{{ route('user.store') }}" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="site-name" class="block text-sm font-medium text-gray-600">Name</label>
-                        <input type="text" name="name" id="site-name"
-                            class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
-                    </div>
+         <!-- Add User Modal -->
+    <div id="site-modal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex justify-center items-center">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-1/3 max-h-screen overflow-y-auto">
+            <h3 class="text-lg font-semibold mb-4 text-black">Add User</h3>
+            <form id="site-form" action="{{ route('user.store') }}" method="POST">
+                @csrf
+                <div class="mb-4">
+                    <label for="site-name" class="block text-sm font-medium text-gray-600">Name</label>
+                    <input type="text" name="name" id="site-name"
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
+                </div>
 
-                    <div class="mb-4">
-                        <label for="site-email" class="block text-sm font-medium text-gray-600">Email</label>
-                        <input type="email" name="email" id="site-email"
-                            class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
-                    </div>
+                <div class="mb-4">
+                    <label for="site-email" class="block text-sm font-medium text-gray-600">Email</label>
+                    <input type="email" name="email" id="site-email"
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
+                </div>
 
-                    <div class="mb-4">
-                        <label for="site-password" class="block text-sm font-medium text-gray-600">Password</label>
-                        <input type="password" name="password" id="site-password"
-                            class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
-                    </div>
+                <div class="mb-4">
+                    <label for="site-password" class="block text-sm font-medium text-gray-600">Password</label>
+                    <input type="password" name="password" id="site-password"
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
+                </div>
 
-                    <div class="mb-4">
-                        <label for="site-password-confirm" class="block text-sm font-medium text-gray-600">Confirm Password</label>
-                        <input type="password" name="password_confirmation" id="site-password-confirm"
-                            class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
-                    </div>
+                <div class="mb-4">
+                    <label for="site-password-confirm" class="block text-sm font-medium text-gray-600">Confirm Password</label>
+                    <input type="password" name="password_confirmation" id="site-password-confirm"
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
+                </div>
 
-                    <div class="mb-4">
-                        <label for="site-usertype" class="block text-sm font-medium text-gray-600">User Type</label>
-                        <select name="usertype" id="site-usertype" required
-                            class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="" disabled selected>Select User Type</option>
-                            @foreach ($manageableUserTypes as $type)
-                            <option value="{{ $type }}">{{ ucfirst($type) }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="mb-4">
+                    <label for="site-usertype" class="block text-sm font-medium text-gray-600">User Type</label>
+                    <select name="usertype" id="site-usertype" required
+                        class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="" disabled selected>Select User Type</option>
+                        @foreach ($manageableUserTypes as $type)
+                        <option value="{{ $type }}">{{ ucfirst($type) }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                    <div class="mb-4" id="manager-field" style="display: none;">
-                        <label for="site-manager" class="block text-sm font-medium text-gray-600">Manager</label>
-                        <select name="manager_id" id="site-manager"
-                            class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Select Manager</option>
-                            @foreach ($users->whereIn('usertype', ['director', 'manager']) as $manager)
-                            <option value="{{ $manager->id }}">{{ $manager->name }} ({{ ucfirst($manager->usertype) }})</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="mb-4" id="manager-field" style="display: none;">
+                    <label for="site-manager" class="block text-sm font-medium text-gray-600">Manager</label>
+                    <select name="manager_id" id="site-manager"
+                        class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select Manager</option>
+                        @foreach ($users->whereIn('usertype', ['director', 'manager']) as $manager)
+                        <option value="{{ $manager->id }}">{{ $manager->name }} ({{ ucfirst($manager->usertype) }})</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                    <div class="mb-4" id="site-field" style="display: none;">
-                        <label for="site-site" class="block text-sm font-medium text-gray-600">Site</label>
-                        <select name="site_id" id="site-site"
-                            class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="" disabled selected>Select Site</option>
-                            @foreach ($sites as $site)
-                            <option value="{{ $site->id }}">{{ $site->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="mb-4" id="site-field" style="display: none;">
+                    <label for="site-site" class="block text-sm font-medium text-gray-600">Site(s)</label>
+                    <select name="site_ids[]" id="site-site" multiple
+                        class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="" disabled>Select Site(s)</option>
+                        @foreach ($sites as $site)
+                        <option value="{{ $site->id }}">{{ $site->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-sm text-gray-500 mt-1">Hold Ctrl (or Cmd) to select multiple sites for supervisors. Employees can select only one site.</p>
+                </div>
 
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save User</button>
-                </form>
-                <button id="close-site-modal" class="mt-4 text-red-500 hover:text-red-700">Cancel</button>
-            </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save User</button>
+            </form>
+            <button id="close-site-modal" class="mt-4 text-red-500 hover:text-red-700">Cancel</button>
         </div>
+    </div>
 
-        <!-- Edit User Modal -->
-        @if(count($users) > 0)
-        <div id="edit-site-modal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex justify-center items-center">
-            <div class="bg-white p-6 rounded-lg shadow-lg w-1/3 max-h-screen overflow-y-auto">
-                <h3 class="text-lg font-semibold mb-4 text-black">Edit User</h3>
-                <form id="edit-site-form" method="POST">
-                    @csrf
-                    @method('PUT')
-                    <input type="hidden" name="id" id="user-id">
+    <!-- Edit User Modal -->
+    @if(count($users) > 0)
+    <div id="edit-site-modal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex justify-center items-center">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-1/3 max-h-screen overflow-y-auto">
+            <h3 class="text-lg font-semibold mb-4 text-black">Edit User</h3>
+            <form id="edit-site-form" method="POST">
+                @csrf
+                @method('PUT')
+                <input type="hidden" name="id" id="user-id">
 
-                    <div class="mb-4">
-                        <label for="edit-name" class="block text-sm font-medium text-gray-600">Name</label>
-                        <input type="text" name="name" id="edit-name"
-                            class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
-                    </div>
+                <div class="mb-4">
+                    <label for="edit-name" class="block text-sm font-medium text-gray-600">Name</label>
+                    <input type="text" name="name" id="edit-name"
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
+                </div>
 
-                    <div class="mb-4">
-                        <label for="edit-email" class="block text-sm font-medium text-gray-600">Email</label>
-                        <input type="email" name="email" id="edit-email"
-                            class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
-                    </div>
+                <div class="mb-4">
+                    <label for="edit-email" class="block text-sm font-medium text-gray-600">Email</label>
+                    <input type="email" name="email" id="edit-email"
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
+                </div>
 
-                    <div class="mb-4">
-                        <label for="edit-password" class="block text-sm font-medium text-gray-600">Password</label>
-                        <input type="password" name="password" id="edit-password"
-                            class="mt-1 block w-full border-gray-500 rounded-md shadow-sm">
-                    </div>
+                <div class="mb-4">
+                    <label for="edit-password" class="block text-sm font-medium text-gray-600">Password</label>
+                    <input type="password" name="password" id="edit-password"
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm">
+                </div>
 
-                    <div class="mb-4">
-                        <label for="edit-password-confirm" class="block text-sm font-medium text-gray-600">Confirm Password</label>
-                        <input type="password" name="password_confirmation" id="edit-password-confirm"
-                            class="mt-1 block w-full border-gray-500 rounded-md shadow-sm">
-                    </div>
+                <div class="mb-4">
+                    <label for="edit-password-confirm" class="block text-sm font-medium text-gray-600">Confirm Password</label>
+                    <input type="password" name="password_confirmation" id="edit-password-confirm"
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm">
+                </div>
 
-                    <div class="mb-4">
-                        <label for="edit-usertype" class="block text-sm font-medium text-gray-600">User Type</label>
-                        <select name="usertype" id="edit-usertype" required
-                            class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            @foreach ($manageableUserTypes as $type)
-                            <option value="{{ $type }}">{{ ucfirst($type) }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="mb-4">
+                    <label for="edit-usertype" class="block text-sm font-medium text-gray-600">User Type</label>
+                    <select name="usertype" id="edit-usertype" required
+                        class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        @foreach ($manageableUserTypes as $type)
+                        <option value="{{ $type }}">{{ ucfirst($type) }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                    <div class="mb-4" id="edit-manager-field" style="display: none;">
-                        <label for="edit-manager" class="block text-sm font-medium text-gray-600">Manager</label>
-                        <select name="manager_id" id="edit-manager"
-                            class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Select Manager</option>
-                            @foreach ($users->whereIn('usertype', ['director', 'manager']) as $manager)
-                            <option value="{{ $manager->id }}">{{ $manager->name }} ({{ ucfirst($manager->usertype) }})</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="mb-4" id="edit-manager-field" style="display: none;">
+                    <label for="edit-manager" class="block text-sm font-medium text-gray-600">Manager</label>
+                    <select name="manager_id" id="edit-manager"
+                        class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select Manager</option>
+                        @foreach ($users->whereIn('usertype', ['director', 'manager']) as $manager)
+                        <option value="{{ $manager->id }}">{{ $manager->name }} ({{ ucfirst($manager->usertype) }})</option>
+                        @endforeach
+                    </select>
+                </div>
 
-                    <div class="mb-4" id="edit-site-field" style="display: none;">
-                        <label for="edit-site" class="block text-sm font-medium text-gray-600">Site</label>
-                        <select name="site_id" id="edit-site"
-                            class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                            <option value="">Select Site</option>
-                            @foreach ($sites as $site)
-                            <option value="{{ $site->id }}">{{ $site->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
+                <div class="mb-4" id="edit-site-field" style="display: none;">
+                    <label for="edit-site" class="block text-sm font-medium text-gray-600">Site(s)</label>
+                    <select name="site_ids[]" id="edit-site" multiple
+                        class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select Site(s)</option>
+                        @foreach ($sites as $site)
+                        <option value="{{ $site->id }}">{{ $site->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-sm text-gray-500 mt-1">Hold Ctrl (or Cmd) to select multiple sites for supervisors. Employees can select only one site.</p>
+                </div>
 
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save User</button>
-                </form>
-                <button id="close-edit-site-modal" class="mt-4 text-red-500 hover:text-red-700" onclick="closeModal()">Cancel</button>
-            </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save User</button>
+            </form>
+            <button id="close-edit-site-modal" class="mt-4 text-red-500 hover:text-red-700" onclick="closeModal()">Cancel</button>
         </div>
-        @endif
+    </div>
+    @endif
 
         <!-- Transfer Sites Modal -->
         @if(in_array(auth()->user()->usertype, ['manager', 'director', 'siteadmin', 'admin']))
@@ -307,29 +309,56 @@
 
     <script>
         // Show/hide fields based on user type selection
-        function toggleFieldsBasedOnUserType(usertypeSelect, managerField, siteField) {
+          function toggleFieldsBasedOnUserType(usertypeSelect, managerField, siteField) {
             const usertype = usertypeSelect.value;
             const managerTypes = ['supervisor', 'manager'];
             const siteTypes = ['supervisor', 'employee'];
+            const siteSelect = siteField.querySelector('select');
 
+            // Toggle manager field
             if (managerTypes.includes(usertype)) {
                 managerField.style.display = 'block';
             } else {
                 managerField.style.display = 'none';
             }
 
+            // Toggle site field and control multi-select
             if (siteTypes.includes(usertype)) {
                 siteField.style.display = 'block';
-                siteField.querySelector('select').required = true;
+                siteSelect.required = true;
+
+                // Enable/disable multiple attribute based on usertype
+                if (usertype === 'supervisor') {
+                    siteSelect.setAttribute('multiple', 'multiple');
+                    siteSelect.name = 'site_ids[]'; // Ensure array input for supervisors
+                } else if (usertype === 'employee') {
+                    siteSelect.removeAttribute('multiple');
+                    siteSelect.name = 'site_id'; // Single input for employees
+                    // Limit to single selection
+                    siteSelect.addEventListener('change', function() {
+                        Array.from(this.options).forEach(option => {
+                            option.selected = option.value === this.value;
+                        });
+                    });
+                }
             } else {
                 siteField.style.display = 'none';
-                siteField.querySelector('select').required = false;
+                siteSelect.required = false;
+                siteSelect.removeAttribute('multiple');
+                siteSelect.name = 'site_id';
             }
         }
 
-        // Add User Modal
+         // Add User Modal
         document.getElementById('add-site-btn').addEventListener('click', () => {
             document.getElementById('site-modal').classList.remove('hidden');
+            // Reset form
+            document.getElementById('site-form').reset();
+            document.getElementById('manager-field').style.display = 'none';
+            document.getElementById('site-field').style.display = 'none';
+            const siteSelect = document.getElementById('site-site');
+            siteSelect.removeAttribute('multiple');
+            siteSelect.name = 'site_id';
         });
 
         document.getElementById('close-site-modal').addEventListener('click', () => {
@@ -349,14 +378,19 @@
             const userEmail = button.getAttribute('data-email');
             const userType = button.getAttribute('data-usertype');
             const managerId = button.getAttribute('data-manager_id');
-            const userSiteId = button.getAttribute('data-site_id');
+            const userSiteIds = button.getAttribute('data-site_ids')?.split(',') || [];
 
             document.getElementById('user-id').value = userId;
             document.getElementById('edit-name').value = userName;
             document.getElementById('edit-email').value = userEmail;
             document.getElementById('edit-usertype').value = userType;
             document.getElementById('edit-manager').value = managerId || '';
-            document.getElementById('edit-site').value = userSiteId || '';
+
+            // Populate site select
+            const siteSelect = document.getElementById('edit-site');
+            Array.from(siteSelect.options).forEach(option => {
+                option.selected = userSiteIds.includes(option.value);
+            });
 
             // Update form action
             document.getElementById('edit-site-form').action = `/admin/user/update/${userId}`;

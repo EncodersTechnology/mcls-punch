@@ -75,7 +75,7 @@ Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function 
     Route::resource('residents', ResidentController::class);
 
     Route::post('add/user', [SiteUsersController::class, 'store'])->name('user.store');
-    Route::put('user/{id}', [SiteUsersController::class, 'update'])->name('user.update');
+    Route::put('user/update/{id}', [SiteUsersController::class, 'update'])->name('user.update');
     Route::delete('user/{id}', [SiteUsersController::class, 'destroy'])->name('user.destroy');
 
     Route::post('/user/transfer-sites', [SiteUsersController::class, 'transferSupervisorSites'])->name('user.transfer-sites');

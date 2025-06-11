@@ -125,7 +125,7 @@ class SiteUsersController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+   public function store(Request $request)
     {
         $currentUser = Auth::user();
         $manageableTypes = $this->getManageableUserTypes($currentUser);
@@ -135,7 +135,8 @@ class SiteUsersController extends Controller
             return redirect()->back()->with('error', 'You do not have permission to create a siteadmin.')->withInput();
         }
 
-        $validator = Validator::make($request->all(), [
+        // Validation rules
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => [
                 'required',
@@ -145,9 +146,18 @@ class SiteUsersController extends Controller
             ],
             'password' => 'required|string|min:8|confirmed',
             'usertype' => ['required', Rule::in($manageableTypes)],
-            'site_id' => 'required_if:usertype,supervisor,employee|exists:sites,id',
             'manager_id' => 'nullable|exists:users,id',
-        ]);
+        ];
+
+        // Add site validation based on usertype
+        if ($request->usertype === 'supervisor') {
+            $rules['site_ids'] = 'required|array|min:1';
+            $rules['site_ids.*'] = 'exists:sites,id';
+        } elseif ($request->usertype === 'employee') {
+            $rules['site_id'] = 'required|exists:sites,id';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
@@ -155,6 +165,7 @@ class SiteUsersController extends Controller
 
         $managerId = $this->determineManagerId($request->usertype, $request->manager_id, $currentUser);
 
+        // Create user
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -163,8 +174,15 @@ class SiteUsersController extends Controller
             'manager_id' => $managerId,
         ]);
 
-        // Create site association for supervisor and employee
-        if (in_array($request->usertype, ['supervisor', 'employee']) && $request->site_id) {
+        // Create site associations
+        if ($request->usertype === 'supervisor' && !empty($request->site_ids)) {
+            foreach ($request->site_ids as $siteId) {
+                SiteUsers::create([
+                    'user_id' => $user->id,
+                    'site_id' => $siteId,
+                ]);
+            }
+        } elseif ($request->usertype === 'employee' && $request->site_id) {
             SiteUsers::create([
                 'user_id' => $user->id,
                 'site_id' => $request->site_id,
@@ -177,7 +195,7 @@ class SiteUsersController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+  public function update(Request $request, $id)
     {
         $user = User::findOrFail($id);
         $currentUser = Auth::user();
@@ -193,7 +211,8 @@ class SiteUsersController extends Controller
 
         $manageableTypes = $this->getManageableUserTypes($currentUser);
 
-        $validator = Validator::make($request->all(), [
+        // Validation rules
+        $rules = [
             'name' => 'required|string|max:255',
             'email' => [
                 'required',
@@ -203,9 +222,18 @@ class SiteUsersController extends Controller
             ],
             'password' => 'nullable|string|min:8|confirmed',
             'usertype' => ['required', Rule::in($manageableTypes)],
-            'site_id' => 'required_if:usertype,supervisor,employee|exists:sites,id',
             'manager_id' => 'nullable|exists:users,id',
-        ]);
+        ];
+
+        // Add site validation based on usertype
+        if ($request->usertype === 'supervisor') {
+            $rules['site_ids'] = 'required|array|min:1';
+            $rules['site_ids.*'] = 'exists:sites,id';
+        } elseif ($request->usertype === 'employee') {
+            $rules['site_id'] = 'required|exists:sites,id';
+        }
+
+        $validator = Validator::make($request->all(), $rules);
 
         if ($validator->fails()) {
             return redirect()->back()->withErrors($validator)->withInput();
@@ -213,12 +241,12 @@ class SiteUsersController extends Controller
 
         $oldUsertype = $user->usertype;
         $managerId = $this->determineManagerId($request->usertype, $request->manager_id, $currentUser);
-
+        // Update user
         $user->update([
             'name' => $request->name,
             'email' => $request->email,
             'usertype' => $request->usertype,
-            'manager_id' => $managerId,
+            'manager_id' => $managerId ?? null,
         ]);
 
         if ($request->filled('password')) {
@@ -226,8 +254,28 @@ class SiteUsersController extends Controller
             $user->save();
         }
 
-        // Handle site associations
-        $this->updateUserSiteAssociations($user, $request, $oldUsertype);
+        // Update site associations
+        if ($request->usertype === 'supervisor' && !empty($request->site_ids)) {
+            // Delete existing site associations
+            SiteUsers::where('user_id', $user->id)->delete();
+            // Create new site associations
+            foreach ($request->site_ids as $siteId) {
+                SiteUsers::create([
+                    'user_id' => $user->id,
+                    'site_id' => $siteId,
+                ]);
+            }
+        } elseif ($request->usertype === 'employee' && $request->site_id) {
+            // Delete existing site associations (ensure only one site for employee)
+            SiteUsers::where('user_id', $user->id)->delete();
+            SiteUsers::create([
+                'user_id' => $user->id,
+                'site_id' => $request->site_id,
+            ]);
+        } elseif (!in_array($request->usertype, ['supervisor', 'employee'])) {
+            // Remove site associations for non-supervisor/employee types
+            SiteUsers::where('user_id', $user->id)->delete();
+        }
 
         return redirect()->route('site.access.index')->with('success', 'User updated successfully.');
     }

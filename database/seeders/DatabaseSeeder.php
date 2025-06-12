@@ -125,10 +125,10 @@ class DatabaseSeeder extends Seeder
 
             $formData[] = [
                 'employee_type' => $employeeType,
-                'mcls_name' => 'MCLS Name ' . Str::random(5),
-                'mcls_email' => 'mcls' . rand(100, 999) . '@example.com',
-                'agency_name' => 'Agency ' . Str::random(4),
-                'agency_employee_name' => 'Agency Emp ' . Str::random(5),
+                'mcls_name' => $employeeType == 'mcls' ? 'MCLS Name ' . Str::random(5) : null,
+                'mcls_email' => $employeeType == 'mcls' ? 'mcls' . rand(100, 999) . '@example.com' : null,
+                'agency_name' => $employeeType == 'agency' ? 'Agency ' . Str::random(4) : null,
+                'agency_employee_name' => $employeeType == 'agency' ? 'Agency Emp ' . Str::random(5) : null,
                 'site_id' => $resident['site_id'],
                 'resident_id' => $resident['id'],
                 'shift' => $shifts[array_rand($shifts)],

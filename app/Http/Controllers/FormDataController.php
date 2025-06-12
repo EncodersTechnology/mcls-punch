@@ -130,6 +130,10 @@ class FormDataController extends Controller
                 $query->whereBetween('log_date', [$request->from_date, $request->to_date]);
             }
 
+            if($request->site_id){
+                $query->where('site_id',$request->site_id);
+            }
+
             if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
@@ -147,6 +151,7 @@ class FormDataController extends Controller
         return view('employee.log', [
             'datas' => $datas,
             'site' => $site,
+            'site_id' => $request->site_id,
             'from_date' => $request->from_date,
             'to_date' => $request->to_date,
             'search' => $request->search
@@ -206,8 +211,6 @@ class FormDataController extends Controller
   public function updateLogData(Request $request, $id)
     {
         $request->validate([
-            'site_id' => ['required', 'exists:sites,id'],
-            'resident_id' => ['required', 'exists:residents,id'],
             'employee_type' => ['required', 'string'],
             'mcls_name' => ['nullable', 'string'],
             'agency_employee_name' => ['nullable', 'string'],

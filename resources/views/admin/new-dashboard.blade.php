@@ -142,7 +142,7 @@
         <div id="section2" class="section2 gradient-two p-6 rounded-lg shadow-lg overflow-auto hidden">
             <div class="mew">
                 <h1 class="text-2xl font-semibold mb-4">Latest Log Entry</h1>
-                @if (auth()->user()->usertype == 'admin')
+                @if (auth()->user()->usertype == 'admin' || auth()->user()->usertype == 'siteadmin')
                 <div class="flex gap-4">
                     <div style="display: flex; flex-direction: column;">
                         <label for="filter_site" class="required">Site of Work:</label>

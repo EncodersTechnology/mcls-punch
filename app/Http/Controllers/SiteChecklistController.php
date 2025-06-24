@@ -16,37 +16,38 @@ class SiteChecklistController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+      public function index()
     {
-        $site = auth()->user()->site;
-        if ($site) {
-            $site_id = $site->id;
+        $currentUser = Auth::user();
+        $accessibleSites = $currentUser->getAccessibleSites();
+        $accessibleSiteIds = $accessibleSites->pluck('id');
 
-            // $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay();
-            // $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY)->endOfDay();
+        $week = request('week'); // accepts 'current' or 'previous'
 
-            $week = request('week'); // accepts 'current' or 'previous'
+        if ($week === 'previous') {
+            $startOfWeek = Carbon::now()->subWeek()->startOfWeek(Carbon::SUNDAY)->startOfDay();
+            $endOfWeek = Carbon::now()->subWeek()->endOfWeek(Carbon::SATURDAY)->endOfDay();
+        } else {
+            $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay();
+            $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY)->endOfDay();
+        }
 
-            if ($week === 'previous') {
-                $startOfWeek = Carbon::now()->subWeek()->startOfWeek(Carbon::SUNDAY)->startOfDay();
-                $endOfWeek = Carbon::now()->subWeek()->endOfWeek(Carbon::SATURDAY)->endOfDay();
-            } else {
-                $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay();
-                $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY)->endOfDay();
-            }
+        $day_shift_checklist = [];
+        $night_shift_checklist = [];
+        $checklistDataByTask = [];
+        $tempValuesByDateAndShift = [];
 
-            // Get all rows in that date range
+        if ($accessibleSiteIds->isNotEmpty()) {
+            // Get all checklist data for accessible sites
             $weeklyData = DB::table('site_checklist_data')
                 ->join('xwalk_site_checklist_type', 'site_checklist_data.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
                 ->select(
                     'site_checklist_data.*',
                     'xwalk_site_checklist_type.checklist_type'
                 )
-                ->where('site_checklist_data.site_id', $site->id)
+                ->whereIn('site_checklist_data.site_id', $accessibleSiteIds)
                 ->whereBetween(DB::raw('DATE(site_checklist_data.log_date_time)'), [$startOfWeek, $endOfWeek])
                 ->get();
-
-            $tempValuesByDateAndShift = [];
 
             foreach ($weeklyData as $row) {
                 $dayDateMap = json_decode($row->day_date_map, true);
@@ -65,38 +66,35 @@ class SiteChecklistController extends Controller
                 }
             }
 
+            // Get day shift checklist settings
             $day_shift_checklist = DB::table('site_checklist_settings')
                 ->select('site_checklist_settings.*', 'xwalk_site_checklist_type.*')
                 ->join('xwalk_site_checklist_type', 'site_checklist_settings.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
-                ->where('site_checklist_settings.site_id', $site_id)
+                ->whereIn('site_checklist_settings.site_id', $accessibleSiteIds)
                 ->where('xwalk_site_checklist_type.checklist_type', 'DAY SHIFT CHECKLIST')
                 ->get()
-                ->groupBy('group_name');
+                ->groupBy(['site_id', 'group_name']);
 
+            // Get night shift checklist settings
             $night_shift_checklist = DB::table('site_checklist_settings')
                 ->select('site_checklist_settings.*', 'xwalk_site_checklist_type.*')
                 ->join('xwalk_site_checklist_type', 'site_checklist_settings.site_checklist_id', '=', 'xwalk_site_checklist_type.id')
-                ->where('site_checklist_settings.site_id', $site_id)
+                ->whereIn('site_checklist_settings.site_id', $accessibleSiteIds)
                 ->where('xwalk_site_checklist_type.checklist_type', 'NIGHT SHIFT CHECKLIST')
                 ->get()
-                ->groupBy('group_name');
+                ->groupBy(['site_id', 'group_name']);
 
+            // Get checklist data by task
             $checklistDataByTask = DB::table('site_checklist_data')
-                ->where('site_id', $site_id)
+                ->whereIn('site_id', $accessibleSiteIds)
                 ->whereDate('week_start', $startOfWeek->toDateString())
                 ->whereDate('week_end', $endOfWeek->toDateString())
                 ->get()
-                ->groupBy('site_checklist_id');
-        } else {
-            $day_shift_checklist = [];
-            $night_shift_checklist = [];
-            $checklist_data = [];
-            $tempValuesByDateAndShift = [];
-            $startOfWeek = null;
-            $endOfWeek = null;
+                ->groupBy(['site_id', 'site_checklist_id']);
         }
 
         return view('employee.sitechecklist', [
+            'sites' => $accessibleSites,
             'day_shift_checklist' => $day_shift_checklist,
             'night_shift_checklist' => $night_shift_checklist,
             'checklistDataByTask' => $checklistDataByTask,
@@ -105,6 +103,7 @@ class SiteChecklistController extends Controller
             'weekEnd' => $endOfWeek,
         ]);
     }
+    
     public function indexAdmin(Request $request)
     {
         $sites = Site::all();
@@ -189,13 +188,15 @@ class SiteChecklistController extends Controller
 
     public function settings(Request $request)
     {
-        $sites = Site::all();
+        $currentUser = Auth::user();
+        $sites = $currentUser->getAccessibleSites();
         $selectedSiteId = $request->get('site_id');
 
         $day_shift_checklist = collect();
         $night_shift_checklist = collect();
 
-        if ($selectedSiteId) {
+        // Validate that the selected site is accessible to the user
+        if ($selectedSiteId && $sites->pluck('id')->contains($selectedSiteId)) {
             $checklists = DB::table('xwalk_site_checklist_type')->get();
 
             $day_shift_checklist = $checklists->where('checklist_type', 'DAY SHIFT CHECKLIST')
@@ -203,8 +204,6 @@ class SiteChecklistController extends Controller
 
             $night_shift_checklist = $checklists->where('checklist_type', 'NIGHT SHIFT CHECKLIST')
                 ->groupBy('group_name');
-
-            // Optional: preload checklist settings for the site
         }
 
         return view('admin.checklistsettings', compact('sites', 'selectedSiteId', 'day_shift_checklist', 'night_shift_checklist'));

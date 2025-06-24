@@ -105,51 +105,58 @@ class FormDataController extends Controller
         }
     }
 
-    public function list(Request $request)
+   public function list(Request $request)
     {
         $request->validate([
             'from_date' => ['nullable', 'date'],
             'to_date' => ['nullable', 'date', 'after_or_equal:from_date'],
         ]);
-        $user_site = DB::table('site_users')->where('user_id', Auth::id())->first();
+
+        $currentUser = Auth::user();
+        $accessibleSiteIds = $currentUser->getAccessibleSites()->pluck('id');
         $datas = [];
         $site = null;
 
-        if ($user_site) {
-            $site = Site::where('id', $user_site->site_id)->first();
+        if ($accessibleSiteIds->isNotEmpty()) {
+            if ($currentUser->usertype === 'employee') {
+                $site = Site::where('id', $accessibleSiteIds->first())->first();
+            } else {
+                $site = Site::whereIn('id', $accessibleSiteIds)->get();
+            }
 
-            $query = FormData::where('site_id', $user_site->site_id);
+            $query = FormData::whereIn('site_id', $accessibleSiteIds);
 
-            // Apply date filter
             if ($request->filled('from_date') && $request->filled('to_date')) {
                 $query->whereBetween('log_date', [$request->from_date, $request->to_date]);
             }
 
-            // Apply search filter on employee or resident name
+            if($request->site_id){
+                $query->where('site_id',$request->site_id);
+            }
+
             if ($request->filled('search')) {
                 $search = $request->search;
                 $query->where(function ($q) use ($search) {
                     $q->where('mcls_name', 'like', "%$search%")
-                        ->orWhere('agency_employee_name', 'like', "%$search%");
+                      ->orWhere('agency_employee_name', 'like', "%$search%");
                 });
             }
 
-            $datas = $query->with(
-                [
-                    'createdBy:id,name',
-                    'resident:id,name'
-                ]
-            )->get();
+            $datas = $query->with([
+                'createdBy:id,name',
+                'resident:id,name'
+            ])->get();
         }
+
         return view('employee.log', [
             'datas' => $datas,
             'site' => $site,
+            'site_id' => $request->site_id,
             'from_date' => $request->from_date,
             'to_date' => $request->to_date,
             'search' => $request->search
         ]);
     }
-
 
     public function adminlog(Request $request)
     {
@@ -162,10 +169,9 @@ class FormDataController extends Controller
         $resident_id = $request->input('resident_id');
         $start_date = $request->input('start_date');
         $end_date = $request->input('end_date');
-        // Get all sites for the dropdown
-        $sites = Site::all();
 
-        // If site_id is present, get the residents for that site
+        $sites = Auth::user()->usertype === 'admin' ? Site::all() : Auth::user()->getAccessibleSites()->get();
+
         if ($site_id) {
             $residents = Resident::when($site_id, function ($query) use ($site_id) {
                 $query->where('site_id', $site_id);
@@ -174,7 +180,6 @@ class FormDataController extends Controller
             $residents = [];
         }
 
-        // Build the query for FormData with the filters
         $datas = FormData::query()
             ->when($site_id, function ($query) use ($site_id) {
                 $query->where('site_id', $site_id);
@@ -188,19 +193,66 @@ class FormDataController extends Controller
             ->when($end_date, function ($query) use ($end_date) {
                 $query->whereDate('log_date', '<=', $end_date);
             })
-            ->with(
-                [
-                    'createdBy:id,name',
-                    'resident:id,name'
-                ]
-            )
+            ->when(Auth::user()->usertype !== 'admin', function ($query) {
+                $accessibleSiteIds = Auth::user()->getAccessibleSites()->pluck('id');
+                $query->whereIn('site_id', $accessibleSiteIds);
+            })
+            ->with([
+                'createdBy:id,name',
+                'resident:id,name'
+            ])
             ->get();
 
-        // Return view with the data
         return view('admin.log', compact('datas', 'sites', 'residents', 'site_id', 'resident_id', 'start_date', 'end_date'));
     }
 
 
+
+  public function updateLogData(Request $request, $id)
+    {
+        $request->validate([
+            'employee_type' => ['required', 'string'],
+            'mcls_name' => ['nullable', 'string'],
+            'agency_employee_name' => ['nullable', 'string'],
+            'log_date' => ['required', 'date'],
+            'shift' => ['required', 'string'],
+            'medical' => ['nullable', 'string'],
+            'behavior' => ['nullable', 'string'],
+            'activities' => ['nullable', 'string'],
+            'nutrition' => ['nullable', 'string'],
+            'sleep' => ['nullable', 'string'],
+            'notes' => ['nullable', 'string'],
+            'temperature' => ['nullable', 'numeric'],
+        ]);
+
+        $formData = FormData::findOrFail($id);
+
+        if (Auth::user()->usertype !== 'admin') {
+            $accessibleSiteIds = Auth::user()->getAccessibleSites()->pluck('id');
+            if (!in_array($request->site_id, $accessibleSiteIds->toArray())) {
+                return redirect()->back()->withErrors(['site_id' => 'You do not have access to this site.']);
+            }
+        }
+
+        $formData->update($request->only([
+            'site_id',
+            'resident_id',
+            'employee_type',
+            'mcls_name',
+            'agency_employee_name',
+            'log_date',
+            'shift',
+            'medical',
+            'behavior',
+            'activities',
+            'nutrition',
+            'sleep',
+            'notes',
+            'temperature',
+        ]));
+
+        return redirect()->back()->with('success', 'Log data updated successfully.');
+    }
 
     public function residentform()
     {

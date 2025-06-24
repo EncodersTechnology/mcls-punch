@@ -25,6 +25,11 @@
                 class="px-6 py-2 bg-gray-300 text-gray-800 rounded-md hover:bg-gray-400 transition duration-300 ease-in-out">
                 Reset
             </a>
+            @if(Auth::user()->usertype != 'employee')
+            <button class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition" id="exportBtn">
+                Export
+            </button>
+            @endif
         </form>
         @if ($errors->any())
         <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
@@ -208,13 +213,28 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
     <script>
-        document.getElementById('exportBtn')?.addEventListener('click', function() {
-            const table = document.getElementById('residentLogTable');
-            const wb = XLSX.utils.table_to_book(table, {
+        document.getElementById('exportBtn').addEventListener('click', function() {
+            const originalTable = document.getElementById('residentLogTable');
+            const clonedTable = originalTable.cloneNode(true);
+
+            // Remove "Action" column from header
+            clonedTable.querySelectorAll('thead tr').forEach(tr => {
+                tr.removeChild(tr.lastElementChild);
+            });
+
+            // Remove "Action" column from body rows
+            clonedTable.querySelectorAll('tbody tr').forEach(tr => {
+                tr.removeChild(tr.lastElementChild);
+            });
+
+            // Export from cleaned table
+            const wb = XLSX.utils.table_to_book(clonedTable, {
                 sheet: "Resident Log Data"
             });
             const ws = wb.Sheets["Resident Log Data"];
             const range = XLSX.utils.decode_range(ws['!ref']);
+
+            // Make header bold
             for (let col = range.s.c; col <= range.e.c; col++) {
                 const cell_address = {
                     r: 0,
@@ -228,6 +248,8 @@
                     }
                 };
             }
+
+            // Auto column widths
             const colWidths = [];
             for (let col = range.s.c; col <= range.e.c; col++) {
                 let maxWidth = 0;
@@ -247,8 +269,11 @@
                 });
             }
             ws['!cols'] = colWidths;
+
+            // Save
             XLSX.writeFile(wb, "resident_log_data.xlsx");
         });
+
 
         function openModal(id) {
             document.getElementById(id).classList.remove('hidden');

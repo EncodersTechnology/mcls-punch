@@ -65,7 +65,7 @@
                             <div class="flex flex-col items-start">
                                 <div>Hello! {{ Auth::user()->name }}</div>
                                 <div class="text-xs text-gray-400 dark:text-gray-500 capitalize">
-                                    {{ Auth::user()->usertype }}
+                                    {{ Auth::user()->usertype == 'employee' ? 'Site User' : Auth::user()->usertype }}
                                 </div>
                             </div>
 

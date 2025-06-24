@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Site;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -80,16 +81,29 @@ class DatabaseSeeder extends Seeder
             }
         }
 
-        // Create Employees and assign them to exactly one site
-        $employees = User::factory()->count(10)->create([
-            'usertype' => 'employee',
-            'password' => Hash::make('Password@123')
-        ]);
+        $site_datas = Site::all();
 
-        foreach ($employees as $employee) {
-            $siteId = collect(range(1, 6))->random(1)[0]; // Select exactly one site
-            $employee->assignSite($siteId);
+        foreach ($site_datas as $site_data) {
+            $user = User::create([
+                'name' => $site_data->name . ' ' . 'User',
+                'email' => Str::slug($site_data->name,'').''.'@multiculturalcls.org',
+                'usertype' => 'employee',
+                'password' => Hash::make('Password@123'),
+            ]);
+
+            $user->assignSite($site_data->id);
         }
+
+        // // Create Employees and assign them to exactly one site
+        // $employees = User::factory()->count(10)->create([
+        //     'usertype' => 'employee',
+        //     'password' => Hash::make('Password@123')
+        // ]);
+
+        // foreach ($employees as $employee) {
+        //     $siteId = collect(range(1, 6))->random(1)[0]; // Select exactly one site
+        //     $employee->assignSite($siteId);
+        // }
 
         $this->call([
             XwalkSeeder::class,

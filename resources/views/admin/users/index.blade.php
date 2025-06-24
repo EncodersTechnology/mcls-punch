@@ -73,7 +73,7 @@
                             @elseif($user->usertype == 'siteadmin') bg-orange-100 text-orange-800
                             @else bg-gray-100 text-gray-800
                             @endif">
-                            {{ ucfirst($user->usertype) }}
+                            {{ $user->usertype == 'employee' ? 'Site User' :  ucfirst($user->usertype) }}
                         </span>
                     </td>
                     <td class="py-2 px-4 border-b">{{ $user->manager ? $user->manager->name : 'N/A' }}</td>
@@ -155,7 +155,7 @@
                         class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                         <option value="" disabled selected>Select User Type</option>
                         @foreach ($manageableUserTypes as $type)
-                        <option value="{{ $type }}">{{ ucfirst($type) }}</option>
+                        <option value="{{ $type }}">{{ $type == 'employee' ? 'Site User' :  ucfirst($type) }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -228,7 +228,7 @@
                     <select name="usertype" id="edit-usertype" required
                         class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                         @foreach ($manageableUserTypes as $type)
-                        <option value="{{ $type }}">{{ ucfirst($type) }}</option>
+                        <option value="{{ $type }}">{{ $type == 'employee' ? 'Site User' :  ucfirst($type) }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -253,7 +253,7 @@
                         <option value="{{ $site->id }}">{{ $site->name }}</option>
                         @endforeach
                     </select>
-                    <p class="text-sm text-gray-500 mt-1">Hold Ctrl (or Cmd) to select multiple sites for supervisors. Employees can select only one site.</p>
+                    <p class="text-sm text-gray-500 mt-1">Hold Ctrl (or Cmd) to select multiple sites for supervisors. Site User can select only one site.</p>
                 </div>
 
                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save User</button>

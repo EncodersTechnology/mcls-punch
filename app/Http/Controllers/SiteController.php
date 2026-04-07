@@ -6,6 +6,7 @@ use App\Models\Resident;
 use App\Models\Site;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class SiteController extends Controller
 {
@@ -15,7 +16,7 @@ class SiteController extends Controller
     public function index()
     {
         $sites = Site::all();
-        $residents = Resident::all();
+        $residents = Resident::with('site')->get()->groupBy('site_id');
         return view('admin.site-resident', compact('sites', 'residents'));
     }
 
@@ -60,12 +61,7 @@ class SiteController extends Controller
             ]);
         }
 
-        $sites = Site::all();
-        $residents = Resident::all();
-
-        return redirect()->route('admin.resident')->with([
-            'sites' => $sites,
-            'residents' => $residents,
+        return redirect()->to(route('admin.resident') . '#sites-tab')->with([
             'success' => 'Site Created Successfully'
         ]);
     }
@@ -98,9 +94,7 @@ class SiteController extends Controller
         ]);
 
         $site->update($validated);
-        $sites = Site::all();
-        $residents = Resident::all();
-        return redirect()->route('admin.resident')->with(['sites' => $sites, 'residents' => $residents, 'success' => 'Site Updated Successfully']);
+        return redirect()->to(route('admin.resident') . '#sites-tab')->with('success', 'Site Updated Successfully');
     }
 
     /**
@@ -115,8 +109,6 @@ class SiteController extends Controller
         $site->delete();
 
         // Redirect back with a success message
-        $sites = Site::all();
-        $residents = Resident::all();
-        return redirect()->route('admin.resident')->with(['sites' => $sites, 'residents' => $residents, 'success' => 'Site Deleted Successfully']);
+        return redirect()->to(route('admin.resident') . '#sites-tab')->with('success', 'Site Deleted Successfully');
     }
 }

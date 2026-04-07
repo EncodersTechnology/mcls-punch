@@ -92,7 +92,7 @@
                             data-email="{{ $user->email }}"
                             data-usertype="{{ $user->usertype }}"
                             data-manager_id="{{ $user->manager_id }}"
-                            data-site_id="{{ $user->sites->first() ? $user->sites->first()->id : '' }}"
+                            data-site_ids="{{ $user->sites->pluck('id')->implode(',') }}"
                             onclick="openEditModal(this)">
                             Edit
                         </button>
@@ -132,15 +132,21 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="site-email" class="block text-sm font-medium text-gray-600">Email</label>
+                    <label for="site-email" class="block text-sm font-medium text-gray-600">Email (must be @multiculturalcls.org)</label>
                     <input type="email" name="email" id="site-email"
-                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" 
+                        placeholder="user@multiculturalcls.org"
+                        pattern="^[a-zA-Z0-9._%+-]+@multiculturalcls\.org$"
+                        title="Email must end with @multiculturalcls.org"
+                        required>
                 </div>
 
                 <div class="mb-4">
-                    <label for="site-password" class="block text-sm font-medium text-gray-600">Password</label>
+                    <label for="site-password" class="block text-sm font-medium text-gray-600">Password (min 8 characters)</label>
                     <input type="password" name="password" id="site-password"
-                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" 
+                        minlength="8"
+                        required>
                 </div>
 
                 <div class="mb-4">
@@ -155,7 +161,7 @@
                         class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                         <option value="" disabled selected>Select User Type</option>
                         @foreach ($manageableUserTypes as $type)
-                        <option value="{{ $type }}">{{ $type == 'employee' ? 'Site User' :  ucfirst($type) }}</option>
+                        <option value="{{ $type }}" {{ (auth()->user()->usertype === 'supervisor' && $type === 'employee') ? 'selected' : '' }}>{{ $type == 'employee' ? 'Site User' :  ucfirst($type) }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -165,7 +171,7 @@
                     <select name="manager_id" id="site-manager"
                         class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                         <option value="">Select Manager</option>
-                        @foreach ($users->whereIn('usertype', ['director', 'manager']) as $manager)
+                        @foreach ($users->whereIn('usertype', ['director', 'manager', 'siteadmin', 'admin']) as $manager)
                         <option value="{{ $manager->id }}">{{ $manager->name }} ({{ ucfirst($manager->usertype) }})</option>
                         @endforeach
                     </select>
@@ -177,10 +183,10 @@
                         class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
                         <option value="" disabled>Select Site(s)</option>
                         @foreach ($sites as $site)
-                        <option value="{{ $site->id }}">{{ $site->name }}</option>
+                        <option value="{{ $site->id }}" {{ (auth()->user()->usertype === 'supervisor') ? 'selected' : '' }}>{{ $site->name }}</option>
                         @endforeach
                     </select>
-                    <p class="text-sm text-gray-500 mt-1">Hold Ctrl (or Cmd) to select multiple sites for supervisors. Employees can select only one site.</p>
+                    <p class="text-sm text-gray-500 mt-1">Hold Ctrl (or Cmd) to select multiple sites for supervisors. Site users can select only one site.</p>
                 </div>
 
                 <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save User</button>
@@ -206,9 +212,12 @@
                 </div>
 
                 <div class="mb-4">
-                    <label for="edit-email" class="block text-sm font-medium text-gray-600">Email</label>
+                    <label for="edit-email" class="block text-sm font-medium text-gray-600">Email (must be @multiculturalcls.org)</label>
                     <input type="email" name="email" id="edit-email"
-                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" required>
+                        class="mt-1 block w-full border-gray-500 rounded-md shadow-sm" 
+                        pattern="^[a-zA-Z0-9._%+-]+@multiculturalcls\.org$"
+                        title="Email must end with @multiculturalcls.org"
+                        required>
                 </div>
 
                 <div class="mb-4">
@@ -248,7 +257,7 @@
                     <label for="edit-site" class="block text-sm font-medium text-gray-600">Site(s)</label>
                     <select name="site_ids[]" id="edit-site" multiple
                         class="mt-1 block w-full border border-gray-500 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                        <option value="">Select Site(s)</option>
+                        <option value="" disabled>Select Site(s)</option>
                         @foreach ($sites as $site)
                         <option value="{{ $site->id }}">{{ $site->name }}</option>
                         @endforeach
@@ -256,7 +265,7 @@
                     <p class="text-sm text-gray-500 mt-1">Hold Ctrl (or Cmd) to select multiple sites for supervisors. Site User can select only one site.</p>
                 </div>
 
-                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save User</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update User</button>
             </form>
             <button id="close-edit-site-modal" class="mt-4 text-red-500 hover:text-red-700" onclick="closeModal()">Cancel</button>
         </div>

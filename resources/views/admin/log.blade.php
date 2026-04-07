@@ -31,8 +31,11 @@
                     <a href="{{ route('admin.log.data') }}" class="px-6 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600">
                         Clear Filters
                     </a>
+                    <button type="button" class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-pink-500 hover:to-red-400 transition" id="exportPdfBtn">
+                        Export PDF
+                    </button>
                     <button class="px-6 py-2 bg-gradient-to-r from-green-400 to-blue-500 text-white rounded-md hover:from-blue-500 hover:to-green-400 transition" id="exportBtn">
-                        Export
+                        Export Excel
                     </button>
                 </form>
             </div>
@@ -214,6 +217,7 @@
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
         document.getElementById('exportBtn').addEventListener('click', function() {
             const originalTable = document.getElementById('residentLogTable');
@@ -275,6 +279,48 @@
             // Save
             XLSX.writeFile(wb, "resident_log_data.xlsx");
         });
+
+        document.getElementById('exportPdfBtn').addEventListener('click', function() {
+            const originalTable = document.getElementById('residentLogTable');
+            const clonedTable = originalTable.cloneNode(true);
+
+            // Remove "Action" column
+            clonedTable.querySelectorAll('tr').forEach(tr => {
+                tr.removeChild(tr.lastElementChild);
+            });
+
+            const opt = {
+                margin: 0.5,
+                filename: 'Resident_Log_Report.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+            };
+
+            // Style adjustment for PDF
+            clonedTable.style.fontSize = '8px';
+            clonedTable.style.width = '100%';
+
+            html2pdf().set(opt).from(clonedTable).save();
+        });
+
+        function exportToPDF(modalId) {
+            const element = document.querySelector(`#${modalId} .modal-content-to-pdf`);
+            const name = element.querySelector('.resident-name-pdf')?.textContent || 'report';
+            const date = element.querySelector('.log-date-pdf')?.textContent || '';
+            
+            const opt = {
+                margin: 1,
+                filename: `Resident_Report_${name}_${date}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+
+            // Temporarily show the modal or a clone for better capture if needed, 
+            // but usually html2pdf can handle hidden elements if they are in the DOM
+            html2pdf().set(opt).from(element).save();
+        }
 
 
         function openModal(id) {

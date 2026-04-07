@@ -80,10 +80,15 @@
     </style>
 
     <div class="container">
-        @if ($sites->count() > 1)
         <form method="GET" action="{{ route('site.checklist') }}" class="site-filter">
-            <label for="site_id">Select Site:</label>
-            <select name="site_id" id="site_id" onchange="this.form.submit()">
+            <label for="week_start">Select Sunday:</label>
+            <input type="date" name="week_start" id="week_start" 
+                value="{{ \Carbon\Carbon::parse($startOfWeek)->format('Y-m-d') }}"
+                onchange="this.form.submit()"
+                class="border rounded px-2 py-1">
+            
+            <label for="site_id" class="ml-4">Select Site:</label>
+            <select name="site_id" id="site_id" onchange="this.form.submit()" class="border rounded px-2 py-1">
                 <option value="">All Sites</option>
                 @foreach ($sites as $site)
                 <option value="{{ $site->id }}" {{ request('site_id') == $site->id ? 'selected' : '' }}>
@@ -91,20 +96,8 @@
                 </option>
                 @endforeach
             </select>
-            <input type="hidden" name="week" value="{{ request('week', 'current') }}">
         </form>
-        @endif
 
-        <form method="GET" action="{{ route('site.checklist') }}" style="margin-bottom: 20px; text-align: right;">
-            <label for="week">Select Week:</label>
-            <select name="week" id="week" onchange="this.form.submit()">
-                <option value="current" {{ request('week') !== 'previous' ? 'selected' : '' }}>Current Week</option>
-                <option value="previous" {{ request('week') === 'previous' ? 'selected' : '' }}>Previous Week</option>
-            </select>
-            @if (request('site_id'))
-            <input type="hidden" name="site_id" value="{{ request('site_id') }}">
-            @endif
-        </form>
 
         @php
         $filteredSites = request('site_id') ? $sites->where('id', request('site_id')) : $sites;
@@ -112,7 +105,7 @@
 
         @foreach ($filteredSites as $site)
         <h2 style="text-align:center;">
-            Checklist for {{ $site->name }} (Week: {{ \Carbon\Carbon::parse($weekStart)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($weekEnd)->format('M d, Y') }})
+            Checklist for {{ $site->name }} (Week: {{ \Carbon\Carbon::parse($startOfWeek)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($endOfWeek)->format('M d, Y') }})
         </h2>
 
         <!-- Day Shift Checklist -->

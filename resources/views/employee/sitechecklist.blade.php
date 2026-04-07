@@ -37,17 +37,14 @@
             font-weight: bold;
         }
 
-        .highlight {
-            font-weight: bold;
-        }
-
-        .monthly {
-            background-color: #cce7f0;
-        }
-
         .important {
             color: red;
             font-weight: bold;
+        }
+
+        .container {
+            width: 90%;
+            margin: 20px auto;
         }
 
         .no-input {
@@ -79,35 +76,53 @@
         }
     </style>
 
-    <div class="container">
-        <form method="GET" action="{{ route('site.checklist') }}" class="site-filter">
-            <label for="week_start">Select Sunday:</label>
-            <input type="date" name="week_start" id="week_start" 
-                value="{{ \Carbon\Carbon::parse($startOfWeek)->format('Y-m-d') }}"
-                onchange="this.form.submit()"
-                class="border rounded px-2 py-1">
-            
-            <label for="site_id" class="ml-4">Select Site:</label>
-            <select name="site_id" id="site_id" onchange="this.form.submit()" class="border rounded px-2 py-1">
-                <option value="">All Sites</option>
-                @foreach ($sites as $site)
-                <option value="{{ $site->id }}" {{ request('site_id') == $site->id ? 'selected' : '' }}>
-                    {{ $site->name }}
-                </option>
-                @endforeach
-            </select>
+    <div class="container mb-6">
+        <form method="GET" action="{{ route('site.checklist') }}" class="flex flex-col md:flex-row gap-4">
+            <div class="flex-1">
+                <label for="site_id" class="block text-black font-semibold mb-2">Select Site</label>
+                <select name="site_id" id="site_id" class="w-full p-3 rounded-lg bg-white text-black border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="">-- Choose Site --</option>
+                    @foreach ($sites as $site)
+                    <option value="{{ $site->id }}" {{ request('site_id') == $site->id ? 'selected' : '' }}>
+                        {{ $site->name }}
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="flex-1">
+                <label for="week_start" class="block text-black font-semibold mb-2">Select Sunday</label>
+                <input type="date" name="week_start" id="week_start" 
+                    value="{{ \Carbon\Carbon::parse($weekStart)->format('Y-m-d') }}"
+                    class="w-full p-3 rounded-lg border-gray-400"
+                    onchange="validateSunday(this)">
+            </div>
+
+            <div class="flex items-end">
+                <button style="background-color: black;" type="submit" class="px-6 py-3 bg-black text-white rounded-lg hover:bg-gray-900 transition">
+                    Filter
+                </button>
+            </div>
         </form>
+    </div>
 
 
         @php
-        $filteredSites = request('site_id') ? $sites->where('id', request('site_id')) : $sites;
+        $selectedSiteId = request('site_id');
+        $filteredSites = $selectedSiteId ? $sites->where('id', $selectedSiteId) : collect();
         @endphp
+
+        @if (!$selectedSiteId)
+        <div class="container mb-6">
+            <p class="text-red-500 text-center font-semibold">Please select a site to view the checklist data.</p>
+        </div>
+        @endif
 
         @foreach ($filteredSites as $site)
         <h2 style="text-align:center;">
-            Checklist for {{ $site->name }} (Week: {{ \Carbon\Carbon::parse($startOfWeek)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($endOfWeek)->format('M d, Y') }})
+            Checklist for {{ $site->name }} (Week: {{ \Carbon\Carbon::parse($weekStart)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($weekEnd)->format('M d, Y') }})
         </h2>
-
+<div class="container">
         <!-- Day Shift Checklist -->
         <table>
             <tr class="section-header">
@@ -171,7 +186,7 @@
                 @endforeach
             </tr>
         </table>
-
+                        </div>
         <!-- Night Shift Checklist -->
         <div class="container">
             <table>
@@ -245,6 +260,15 @@
     </div>
 
     <script>
+        function validateSunday(input) {
+            const [year, month, day] = input.value.split('-');
+            const selectedDate = new Date(year, month - 1, day); // JS months are 0-based
+            if (selectedDate.getDay() !== 0) {
+                alert('Please select a Sunday as the start of the week.');
+                input.value = '';
+            }
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             const cells = document.querySelectorAll("td");
 

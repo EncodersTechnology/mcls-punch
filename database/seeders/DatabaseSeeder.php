@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
         for ($i = 1; $i <= 6; $i++) {
             $siteId = DB::table('sites')->insertGetId([
                 'name' => 'Site ' . $i,
+                'shift_1' => 'Morning Shift (8:00 AM to 8:00 PM)',
+                'shift_2' => 'Night Shift (8:00 PM to 8:00 AM)',
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

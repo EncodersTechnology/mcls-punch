@@ -105,6 +105,7 @@
                     <th class="py-2 px-4 border-b text-left">User Type</th>
                     <th class="py-2 px-4 border-b text-left">Manager</th>
                     <th class="py-2 px-4 border-b text-left">Sites</th>
+                    <th class="py-2 px-4 border-b text-left">Access Upto</th>
                     <th class="py-2 px-4 border-b text-left">Action</th>
                 </tr>
             </thead>
@@ -135,6 +136,18 @@
                             N/A
                         @endif
                     </td>
+                    <td class="py-2 px-4 border-b">
+                        @if($user->access_upto)
+                            <span class="{{ $user->access_upto->isPast() ? 'text-red-600 font-bold' : '' }}">
+                                {{ $user->access_upto->format('Y-m-d') }}
+                                @if($user->access_upto->isPast())
+                                    (Expired)
+                                @endif
+                            </span>
+                        @else
+                            <span class="text-green-600">Permanent</span>
+                        @endif
+                    </td>
                     <td class="flex gap-2">
                         <button type="button"
                             class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
@@ -144,6 +157,7 @@
                             data-usertype="{{ $user->usertype }}"
                             data-manager_id="{{ $user->manager_id }}"
                             data-site_ids="{{ $user->sites->pluck('id')->implode(',') }}"
+                            data-access_upto="{{ $user->access_upto ? $user->access_upto->format('Y-m-d') : '' }}"
                             onclick="openEditModal(this)">
                             Edit
                         </button>
@@ -248,6 +262,13 @@
                         <p class="text-sm text-gray-500 mt-1" id="site-help-text"></p>
                     </div>
 
+                    <div class="mb-4">
+                        <label for="site-access-upto" class="block text-sm font-medium text-gray-600">Access Upto (Optional)</label>
+                        <input type="date" name="access_upto" id="site-access-upto"
+                            class="mt-1 block w-full border-gray-500 rounded-md shadow-sm">
+                        <p class="text-xs text-gray-500 mt-1">Leave empty for permanent access.</p>
+                    </div>
+
                     <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save User</button>
                 </form>
                 <button id="close-site-modal" class="mt-4 text-red-500 hover:text-red-700">Cancel</button>
@@ -330,6 +351,13 @@
                             @endforeach
                         </select>
                         <p class="text-sm text-gray-500 mt-1" id="edit-site-help-text"></p>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="edit-access-upto" class="block text-sm font-medium text-gray-600">Access Upto (Optional)</label>
+                        <input type="date" name="access_upto" id="edit-access-upto"
+                            class="mt-1 block w-full border-gray-500 rounded-md shadow-sm">
+                        <p class="text-xs text-gray-500 mt-1">Leave empty for permanent access.</p>
                     </div>
 
                     <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Update User</button>
@@ -480,12 +508,14 @@
             const managerId  = button.getAttribute('data-manager_id');
             const siteIds    = button.getAttribute('data-site_ids')
                                     ?.split(',').filter(v => v !== '') || [];
+            const accessUpto = button.getAttribute('data-access_upto');
 
             document.getElementById('user-id').value      = userId;
             document.getElementById('edit-name').value    = userName;
             document.getElementById('edit-email').value   = userEmail;
             document.getElementById('edit-usertype').value = userType;
             document.getElementById('edit-manager').value = managerId || '';
+            document.getElementById('edit-access-upto').value = accessUpto || '';
 
             // Set form action
             document.getElementById('edit-site-form').action = `/admin/user/update/${userId}`;

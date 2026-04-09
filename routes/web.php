@@ -27,13 +27,20 @@ Route::get('/', function () {
     return view('auth.login');
 })->name('home');
 
-Route::get('/dashboard', [FormDataController::class, 'index'])->name('dashboard');
+Route::get('/access-expired', function () {
+    if (auth()->check() && (!auth()->user()->access_upto || !auth()->user()->access_upto->isPast())) {
+        return redirect()->route('dashboard');
+    }
+    return view('errors.access-expired');
+})->name('access.expired');
 
-Route::get('users/login/{id}', [SiteUsersController::class, 'magicLogin'])->name('users.login')->middleware('auth');
-Route::get('/acess/management', [SiteUsersController::class, 'index'])->name('site.access.index')->middleware('auth');
-Route::put('/log/data/{id}', [FormDataController::class, 'updateLogData'])->name('log.update')->middleware('auth');
 
-Route::middleware('auth')->group(function () {
+Route::get('users/login/{id}', [SiteUsersController::class, 'magicLogin'])->name('users.login')->middleware(['auth', 'check_access']);
+Route::get('/acess/management', [SiteUsersController::class, 'index'])->name('site.access.index')->middleware(['auth', 'check_access']);
+Route::put('/log/data/{id}', [FormDataController::class, 'updateLogData'])->name('log.update')->middleware(['auth', 'check_access']);
+
+Route::middleware(['auth', 'check_access'])->group(function () {
+    Route::get('/dashboard', [FormDataController::class, 'index'])->name('dashboard');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -60,7 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/admin/settings/toggle', [SiteChecklistController::class, 'toggleSetting'])->name('admin.settings.toggle');
 });
 
-Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin']], function () {
+Route::group(['prefix' => 'admin', 'middleware' => ['auth', 'admin', 'check_access']], function () {
 
     Route::get('/dashboard', [FormDataController::class, 'index'])->name('admin.dashboard');
 

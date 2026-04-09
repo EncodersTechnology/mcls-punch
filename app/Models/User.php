@@ -23,6 +23,7 @@ class User extends Authenticatable
         'usertype',
         'password',
         'manager_id',
+        'access_upto',
     ];
 
     /**
@@ -43,6 +44,7 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'access_upto' => 'datetime',
     ];
 
     public function siteUser()

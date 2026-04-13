@@ -16,21 +16,18 @@ class SiteChecklistController extends Controller
     /**
      * Display a listing of the resource.
      */
-      public function index()
+    public function index(Request $request)
     {
         $currentUser = Auth::user();
         $accessibleSites = $currentUser->getAccessibleSites();
         $accessibleSiteIds = $accessibleSites->pluck('id');
 
-        $week = request('week'); // accepts 'current' or 'previous'
-
-        if ($week === 'previous') {
-            $startOfWeek = Carbon::now()->subWeek()->startOfWeek(Carbon::SUNDAY)->startOfDay();
-            $endOfWeek = Carbon::now()->subWeek()->endOfWeek(Carbon::SATURDAY)->endOfDay();
-        } else {
-            $startOfWeek = Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay();
-            $endOfWeek = Carbon::now()->endOfWeek(Carbon::SATURDAY)->endOfDay();
-        }
+        // Force the week_start to be a Sunday, consistent with admin view
+        $startOfWeek = $request->week_start
+            ? Carbon::parse($request->week_start)->startOfWeek(Carbon::SUNDAY)->startOfDay()
+            : Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay();
+            
+        $endOfWeek = $startOfWeek->copy()->endOfWeek(Carbon::SATURDAY)->endOfDay();
 
         $day_shift_checklist = [];
         $night_shift_checklist = [];

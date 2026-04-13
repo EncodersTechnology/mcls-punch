@@ -147,6 +147,7 @@ class SiteUsersController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'usertype' => ['required', Rule::in($manageableTypes)],
             'manager_id' => 'nullable|exists:users,id',
+            'access_upto' => 'nullable|date',
         ];
 
         // Add site validation based on usertype
@@ -172,6 +173,7 @@ class SiteUsersController extends Controller
             'password' => Hash::make($request->password),
             'usertype' => $request->usertype,
             'manager_id' => $managerId,
+            'access_upto' => $request->access_upto,
         ]);
 
         // Create site associations
@@ -223,6 +225,7 @@ class SiteUsersController extends Controller
             'password' => 'nullable|string|min:8|confirmed',
             'usertype' => ['required', Rule::in($manageableTypes)],
             'manager_id' => 'nullable|exists:users,id',
+            'access_upto' => 'nullable|date',
         ];
 
         // Add site validation based on usertype
@@ -247,6 +250,7 @@ class SiteUsersController extends Controller
             'email' => $request->email,
             'usertype' => $request->usertype,
             'manager_id' => $managerId ?? null,
+            'access_upto' => $request->access_upto,
         ]);
 
         if ($request->filled('password')) {

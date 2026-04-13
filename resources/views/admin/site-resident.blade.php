@@ -14,6 +14,13 @@
             font-family: 'Rubik', sans-serif;
             text-align: center;
         }
+        .site-group-row td {
+            background: linear-gradient(to right, #f8fafc, #ffffff) !important;
+            border-left: 4px solid #3b82f6 !important;
+        }
+        .resident-row:hover {
+            background-color: #f1f5f9 !important;
+        }
     </style>
     <div class="container mx-auto mt-8">
         @if (session('success'))
@@ -22,12 +29,22 @@
         </div>
         @endif
 
+        @if ($errors->any())
+        <div class="bg-red-500 text-white p-4 mb-4 rounded">
+            <ul>
+                @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        @endif
+
         <div class="tabs">
             <div class="flex space-x-4 border-b-2 mb-4 pb-3">
                 <button id="sites-tab"
-                    class="text-lg py-2 px-4 focus:outline-none tab-button active-tab text-brown">Sites</button>
+                    class="text-lg py-2 px-4 focus:outline-none tab-button active-tab text-brown" onclick="switchTab('sites')">Sites</button>
                 <button id="residents-tab"
-                    class="text-lg py-2 px-4 focus:outline-none tab-button text-brown">Residents</button>
+                    class="text-lg py-2 px-4 focus:outline-none tab-button text-brown" onclick="switchTab('residents')">Residents</button>
             </div>
 
             <!-- Sites Tab -->
@@ -73,27 +90,42 @@
 
             <!-- Residents Tab -->
             <div id="residents-content" class="tab-content hidden">
-                <div class="flex justify-between mb-4">
+                <div class="flex justify-between mb-4 items-center">
                     <button id="add-resident-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add Resident</button>
+                    <div class="relative w-1/3">
+                        <input type="text" id="resident-search" placeholder="Search residents or sites..." 
+                            class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
                 </div>
                 <table class="min-w-full text-black border border-gray-700">
                     <thead>
                         <tr>
-                            <th class="py-2 px-4 text-left">ID</th>
+                            <th class="py-2 px-4 text-left">SN</th>
                             <th class="py-2 px-4 text-left">Name</th>
                             <th class="py-2 px-4 text-left">Site</th>
                             <th class="py-2 px-4 text-left">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($residents as $resident)
-                        <tr>
-                            <td class="py-2 px-4 border-b">{{ $resident->id }}</td>
+                        @foreach ($residents as $siteId => $siteResidents)
+                        <tr class="site-group-row">
+                            <td colspan="4" class="py-3 px-4 font-bold text-blue-800 border-b">
+                                <div class="flex items-center justify-between">
+                                    <span>{{ $siteResidents->first()->site->name ?? 'Unknown Site' }}</span>
+                                    <span class="text-xs font-normal bg-blue-100 text-blue-600 px-2 py-1 rounded-full">
+                                        {{ $siteResidents->count() }} Residents
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                        @foreach ($siteResidents as $resIndex=>$resident)
+                        <tr class="resident-row" data-name="{{ strtolower($resident->name) }}" data-site="{{ strtolower($resident->site->name ?? '') }}">
+                            <td class="py-2 px-4 border-b">{{ $resIndex+1 }}</td>
                             <td class="py-2 px-4 border-b">{{ $resident->name }}</td>
-                            <td class="py-2 px-4 border-b">{{ $resident->site->name }}</td>
+                            <td class="py-2 px-4 border-b">{{ $resident->site->name ?? 'N/A' }}</td>
                             <td class="py-2 px-4 border-b">
                                 <button data-id="{{ $resident->id }}" data-name="{{ $resident->name }}"
-                                    data-site="{{ $resident->site->id }}"
+                                    data-site="{{ $resident->site_id }}"
                                     class="edit-resident-btn text-blue-400 hover:text-blue-600">Edit</button> |
                                 <form action="{{ route('residents.destroy', $resident) }}" method="POST"
                                     style="display:inline;"
@@ -104,6 +136,7 @@
                                 </form>
                             </td>
                         </tr>
+                        @endforeach
                         @endforeach
                     </tbody>
                 </table>
@@ -176,17 +209,63 @@
     </div>
 
     <script>
-        document.getElementById('sites-tab').addEventListener('click', () => {
-            document.getElementById('sites-content').classList.remove('hidden');
-            document.getElementById('residents-content').classList.add('hidden');
-            document.getElementById('sites-tab').classList.add('active-tab');
-            document.getElementById('residents-tab').classList.remove('active-tab');
+        function switchTab(tab) {
+            if (tab === 'sites') {
+                document.getElementById('sites-content').classList.remove('hidden');
+                document.getElementById('residents-content').classList.add('hidden');
+                document.getElementById('sites-tab').classList.add('active-tab');
+                document.getElementById('residents-tab').classList.remove('active-tab');
+                window.location.hash = 'sites-tab';
+            } else {
+                document.getElementById('residents-content').classList.remove('hidden');
+                document.getElementById('sites-content').classList.add('hidden');
+                document.getElementById('residents-tab').classList.add('active-tab');
+                document.getElementById('sites-tab').classList.remove('active-tab');
+                window.location.hash = 'residents-tab';
+            }
+        }
+
+        // Handle URL fragment on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const hash = window.location.hash;
+            if (hash === '#residents-tab') {
+                switchTab('residents');
+            } else {
+                switchTab('sites');
+            }
         });
-        document.getElementById('residents-tab').addEventListener('click', () => {
-            document.getElementById('residents-content').classList.remove('hidden');
-            document.getElementById('sites-content').classList.add('hidden');
-            document.getElementById('residents-tab').classList.add('active-tab');
-            document.getElementById('sites-tab').classList.remove('active-tab');
+
+        // Resident Search Filter
+        document.getElementById('resident-search')?.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.resident-row');
+            const groups = document.querySelectorAll('.site-group-row');
+            
+            let visibleInGroup = new Set();
+
+            rows.forEach(row => {
+                const name = row.dataset.name;
+                const site = row.dataset.site;
+                if (name.includes(query) || site.includes(query)) {
+                    row.classList.remove('hidden');
+                    // Find the preceding site group row if any
+                    let prev = row.previousElementSibling;
+                    while(prev && !prev.classList.contains('site-group-row')) {
+                        prev = prev.previousElementSibling;
+                    }
+                    if (prev) visibleInGroup.add(prev);
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            groups.forEach(group => {
+                if (visibleInGroup.has(group)) {
+                    group.classList.remove('hidden');
+                } else {
+                    group.classList.add('hidden');
+                }
+            });
         });
 
         document.getElementById('add-site-btn').addEventListener('click', () => {
@@ -216,9 +295,10 @@
                 document.getElementById('shift_1').value = shift_1;
                 document.getElementById('shift_2').value = shift_2;
 
-                // Change this line to use the named route
-                document.getElementById('site-form').action = "{{ route('sites.update', ':id') }}".replace(
-                    ':id', siteId);
+                document.getElementById('site-form').action = "{{ route('sites.update', ':id') }}".replace(':id', siteId);
+
+                // Clear previous method inputs if any
+                document.querySelectorAll('#site-form input[name="_method"]').forEach(el => el.remove());
 
                 const methodInput = document.createElement('input');
                 methodInput.type = 'hidden';
@@ -226,6 +306,7 @@
                 methodInput.value = 'PUT';
                 document.getElementById('site-form').appendChild(methodInput);
 
+                document.querySelector('#site-modal h3').innerText = 'Edit Site';
                 document.getElementById('site-modal').classList.remove('hidden');
             });
         });
@@ -239,17 +320,18 @@
                 document.getElementById('resident-name').value = residentName;
                 document.getElementById('site-id').value = siteId;
 
-                // Use named route for update
-                document.getElementById('resident-form').action = "{{ route('residents.update', ':id') }}"
-                    .replace(':id', residentId);
+                document.getElementById('resident-form').action = "{{ route('residents.update', ':id') }}".replace(':id', residentId);
 
-                // Add hidden input for PUT method
+                // Clear previous method inputs if any
+                document.querySelectorAll('#resident-form input[name="_method"]').forEach(el => el.remove());
+
                 const methodInput = document.createElement('input');
                 methodInput.type = 'hidden';
                 methodInput.name = '_method';
                 methodInput.value = 'PUT';
                 document.getElementById('resident-form').appendChild(methodInput);
 
+                document.querySelector('#resident-modal h3').innerText = 'Edit Resident';
                 document.getElementById('resident-modal').classList.remove('hidden');
             });
         });

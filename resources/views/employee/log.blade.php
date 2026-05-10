@@ -109,12 +109,15 @@
                             <button type="button"
                                 class="bg-blue-500 text-white px-3 py-1 text-sm rounded hover:bg-blue-600"
                                 onclick="openModal('modal-{{ $data->id }}')">View</button>
+                            @if(Auth::user()->usertype != 'employee')
                             <button type="button"
                                 class="bg-yellow-500 text-white px-3 py-1 text-sm rounded hover:bg-yellow-600"
                                 onclick="openEditModal('edit-modal-{{ $data->id }}')">Edit</button>
+                            @endif
 
                             @include('admin.logPopUp', ['data' => $data])
 
+                            @if(Auth::user()->usertype != 'employee')
                             <!-- Edit Modal -->
                             <div id="edit-modal-{{ $data->id }}" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
                                 <div class="bg-white p-6 rounded-lg w-full max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -206,6 +209,7 @@
                                     </form>
                                 </div>
                             </div>
+                            @endif
                         </td>
                     </tr>
                     @endforeach
@@ -292,7 +296,7 @@
                 filename: 'Resident_Log_Report.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }
+                jsPDF: { unit: 'in', format: 'a2', orientation: 'landscape' }
             };
 
             // Style adjustment for PDF

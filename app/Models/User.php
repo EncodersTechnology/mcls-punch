@@ -206,13 +206,8 @@ class User extends Authenticatable
         switch ($this->usertype) {
             case 'admin':
             case 'siteadmin':
-                return Site::all(); // Admin and Siteadmin have access to all sites
             case 'director':
-                // Directors access sites of their managers and supervisors
-                $subordinateIds = $this->subordinates()->whereIn('usertype', ['manager', 'supervisor'])->pluck('id');
-                return Site::whereHas('siteUsers', function ($query) use ($subordinateIds) {
-                    $query->whereIn('user_id', $subordinateIds);
-                })->get();
+                return Site::all(); // Admin, Siteadmin, and Director have access to all sites
             case 'manager':
                 // Managers access sites of their supervisors
                 $supervisorIds = $this->subordinates()->where('usertype', 'supervisor')->pluck('id');
@@ -241,8 +236,8 @@ class User extends Authenticatable
         switch ($this->usertype) {
             case 'admin':
             case 'siteadmin':
-                return FormData::query();
             case 'director':
+                return FormData::query();
             case 'manager':
             case 'supervisor':
                 return FormData::whereIn('site_id', $accessibleSiteIds);

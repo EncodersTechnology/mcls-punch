@@ -18,17 +18,17 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // 1. Seed 5-6 sites
-        $sites = [];
-        for ($i = 1; $i <= 6; $i++) {
-            $siteId = DB::table('sites')->insertGetId([
-                'name' => 'Site ' . $i,
-                'shift_1' => 'Morning Shift (8:00 AM to 8:00 PM)',
-                'shift_2' => 'Night Shift (8:00 PM to 8:00 AM)',
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-            $sites[] = $siteId;
-        }
+        // $sites = [];
+        // for ($i = 1; $i <= 6; $i++) {
+        //     $siteId = DB::table('sites')->insertGetId([
+        //         'name' => 'Site ' . $i,
+        //         'shift_1' => 'Morning Shift (8:00 AM to 8:00 PM)',
+        //         'shift_2' => 'Night Shift (8:00 PM to 8:00 AM)',
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ]);
+        //     $sites[] = $siteId;
+        // }
 
         // Create Admin and Siteadmin users (not assigned to sites)
         User::factory()->create([
@@ -38,63 +38,63 @@ class DatabaseSeeder extends Seeder
             'password' => Hash::make('Admin@123'),
         ]);
 
-        User::factory()->create([
-            'name' => 'Site Admin',
-            'email' => 'siteadmin@multiculturalcls.org',
-            'usertype' => 'siteadmin',
-            'password' => Hash::make('Admin@123'),
-        ]);
+        // User::factory()->create([
+        //     'name' => 'Site Admin',
+        //     'email' => 'siteadmin@multiculturalcls.org',
+        //     'usertype' => 'siteadmin',
+        //     'password' => Hash::make('Admin@123'),
+        // ]);
 
-        // Create Directors
-        $directors = User::factory()->count(2)->create([
-            'usertype' => 'director',
-            'password' => Hash::make('Password@123')
-        ]);
+        // // Create Directors
+        // $directors = User::factory()->count(2)->create([
+        //     'usertype' => 'director',
+        //     'password' => Hash::make('Password@123')
+        // ]);
 
         // Create Managers and assign them to Directors
-        $managers = collect();
-        foreach ($directors as $director) {
-            $managers = $managers->merge(
-                User::factory()->count(2)->create([
-                    'usertype' => 'manager',
-                    'manager_id' => $director->id,
-                    'password' => Hash::make('Password@123')
-                ])
-            );
-        }
+        // $managers = collect();
+        // foreach ($directors as $director) {
+        //     $managers = $managers->merge(
+        //         User::factory()->count(2)->create([
+        //             'usertype' => 'manager',
+        //             'manager_id' => $director->id,
+        //             'password' => Hash::make('Password@123')
+        //         ])
+        //     );
+        // }
 
         // Create Supervisors and assign to Managers
-        $supervisors = collect();
-        foreach ($managers as $manager) {
-            $supervisors = $supervisors->merge(
-                User::factory()->count(2)->create([
-                    'usertype' => 'supervisor',
-                    'manager_id' => $manager->id,
-                    'password' => Hash::make('Password@123')
-                ])
-            );
-        }
+        // $supervisors = collect();
+        // foreach ($managers as $manager) {
+        //     $supervisors = $supervisors->merge(
+        //         User::factory()->count(2)->create([
+        //             'usertype' => 'supervisor',
+        //             'manager_id' => $manager->id,
+        //             'password' => Hash::make('Password@123')
+        //         ])
+        //     );
+        // }
 
         // Assign supervisors to random sites (1-2 sites)
-        foreach ($supervisors as $supervisor) {
-            $siteIds = collect(range(1, 6))->random(rand(1, 2));
-            foreach ($siteIds as $siteId) {
-                $supervisor->assignSite($siteId);
-            }
-        }
+        // foreach ($supervisors as $supervisor) {
+        //     $siteIds = collect(range(1, 6))->random(rand(1, 2));
+        //     foreach ($siteIds as $siteId) {
+        //         $supervisor->assignSite($siteId);
+        //     }
+        // }
 
-        $site_datas = Site::all();
+        // $site_datas = Site::all();
 
-        foreach ($site_datas as $site_data) {
-            $user = User::create([
-                'name' => $site_data->name . ' ' . 'User',
-                'email' => Str::slug($site_data->name,'').''.'@multiculturalcls.org',
-                'usertype' => 'employee',
-                'password' => Hash::make('Password@123'),
-            ]);
+        // foreach ($site_datas as $site_data) {
+        //     $user = User::create([
+        //         'name' => $site_data->name . ' ' . 'User',
+        //         'email' => Str::slug($site_data->name,'').''.'@multiculturalcls.org',
+        //         'usertype' => 'employee',
+        //         'password' => Hash::make('Password@123'),
+        //     ]);
 
-            $user->assignSite($site_data->id);
-        }
+        //     $user->assignSite($site_data->id);
+        // }
 
         // // Create Employees and assign them to exactly one site
         // $employees = User::factory()->count(10)->create([
@@ -112,56 +112,56 @@ class DatabaseSeeder extends Seeder
         ]);
 
         // 2. Seed 8-9 residents and map them to random sites
-        $residents = [];
-        for ($i = 1; $i <= 9; $i++) {
-            $siteId = $sites[array_rand($sites)];
+        // $residents = [];
+        // for ($i = 1; $i <= 9; $i++) {
+        //     $siteId = $sites[array_rand($sites)];
 
-            $residentId = DB::table('residents')->insertGetId([
-                'name' => 'Resident ' . $i,
-                'site_id' => $siteId,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
+        //     $residentId = DB::table('residents')->insertGetId([
+        //         'name' => 'Resident ' . $i,
+        //         'site_id' => $siteId,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ]);
 
-            $residents[] = [
-                'id' => $residentId,
-                'site_id' => $siteId,
-            ];
-        }
+        //     $residents[] = [
+        //         'id' => $residentId,
+        //         'site_id' => $siteId,
+        //     ];
+        // }
 
         // 3. Seed 50 form_data entries
-        $employeeTypes = ['mcls', 'agency'];
-        $shifts = ['morning', 'night'];
+        // $employeeTypes = ['mcls', 'agency'];
+        // $shifts = ['morning', 'night'];
 
-        $formData = [];
+        // $formData = [];
 
-        for ($i = 0; $i < 50; $i++) {
-            $resident = $residents[array_rand($residents)];
-            $employeeType = $employeeTypes[array_rand($employeeTypes)];
+        // for ($i = 0; $i < 50; $i++) {
+        //     $resident = $residents[array_rand($residents)];
+        //     $employeeType = $employeeTypes[array_rand($employeeTypes)];
 
-            $formData[] = [
-                'employee_type' => $employeeType,
-                'mcls_name' => $employeeType == 'mcls' ? 'MCLS Name ' . Str::random(5) : null,
-                'mcls_email' => $employeeType == 'mcls' ? 'mcls' . rand(100, 999) . '@example.com' : null,
-                'agency_name' => $employeeType == 'agency' ? 'Agency ' . Str::random(4) : null,
-                'agency_employee_name' => $employeeType == 'agency' ? 'Agency Emp ' . Str::random(5) : null,
-                'site_id' => $resident['site_id'],
-                'resident_id' => $resident['id'],
-                'shift' => $shifts[array_rand($shifts)],
-                'log_date' => Carbon::now()->subDays(rand(0, 30))->toDateString(),
-                'log_time' => Carbon::createFromTime(rand(7, 22), rand(0, 59))->toTimeString(),
-                'adls' => 'ADL content ' . Str::random(10),
-                'medical' => 'Medical notes ' . Str::random(10),
-                'behavior' => 'Behavior details ' . Str::random(10),
-                'activities' => 'Activities ' . Str::random(10),
-                'nutrition' => 'Nutrition ' . Str::random(10),
-                'sleep' => 'Sleep details ' . Str::random(10),
-                'notes' => 'Notes ' . Str::random(10),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
+        //     $formData[] = [
+        //         'employee_type' => $employeeType,
+        //         'mcls_name' => $employeeType == 'mcls' ? 'MCLS Name ' . Str::random(5) : null,
+        //         'mcls_email' => $employeeType == 'mcls' ? 'mcls' . rand(100, 999) . '@example.com' : null,
+        //         'agency_name' => $employeeType == 'agency' ? 'Agency ' . Str::random(4) : null,
+        //         'agency_employee_name' => $employeeType == 'agency' ? 'Agency Emp ' . Str::random(5) : null,
+        //         'site_id' => $resident['site_id'],
+        //         'resident_id' => $resident['id'],
+        //         'shift' => $shifts[array_rand($shifts)],
+        //         'log_date' => Carbon::now()->subDays(rand(0, 30))->toDateString(),
+        //         'log_time' => Carbon::createFromTime(rand(7, 22), rand(0, 59))->toTimeString(),
+        //         'adls' => 'ADL content ' . Str::random(10),
+        //         'medical' => 'Medical notes ' . Str::random(10),
+        //         'behavior' => 'Behavior details ' . Str::random(10),
+        //         'activities' => 'Activities ' . Str::random(10),
+        //         'nutrition' => 'Nutrition ' . Str::random(10),
+        //         'sleep' => 'Sleep details ' . Str::random(10),
+        //         'notes' => 'Notes ' . Str::random(10),
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ];
+        // }
 
-        DB::table('form_data')->insert($formData);
+        // DB::table('form_data')->insert($formData);
     }
 }

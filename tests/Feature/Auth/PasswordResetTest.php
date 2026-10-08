@@ -23,7 +23,8 @@ class PasswordResetTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create();
+        // Password reset is restricted to supervisors by PasswordResetLinkController.
+        $user = User::factory()->create(['usertype' => 'supervisor']);
 
         $this->post('/forgot-password', ['email' => $user->email]);
 
@@ -34,7 +35,8 @@ class PasswordResetTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create();
+        // Password reset is restricted to supervisors by PasswordResetLinkController.
+        $user = User::factory()->create(['usertype' => 'supervisor']);
 
         $this->post('/forgot-password', ['email' => $user->email]);
 
@@ -51,7 +53,8 @@ class PasswordResetTest extends TestCase
     {
         Notification::fake();
 
-        $user = User::factory()->create();
+        // Password reset is restricted to supervisors by PasswordResetLinkController.
+        $user = User::factory()->create(['usertype' => 'supervisor']);
 
         $this->post('/forgot-password', ['email' => $user->email]);
 

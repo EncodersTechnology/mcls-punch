@@ -24,7 +24,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('site_checklist_data', function (Blueprint $table) {
-            //
+            $table->dropColumn(['week_start', 'week_end', 'day_date_map']);
         });
     }
 };

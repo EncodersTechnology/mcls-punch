@@ -1,3 +1,112 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root { color-scheme: light; }
+    .dark { color-scheme: dark; }
+
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+        @apply bg-ink-50 text-ink-900 antialiased;
+        @apply dark:bg-ink-950 dark:text-ink-100;
+    }
+
+    /* One visible, consistent focus treatment everywhere. */
+    :focus-visible {
+        @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white dark:ring-offset-ink-950 rounded;
+    }
+
+    [type='text'], [type='email'], [type='password'], [type='number'], [type='date'],
+    [type='time'], [type='search'], select, textarea {
+        @apply rounded-lg border-ink-200 bg-white text-ink-900 shadow-sm transition;
+        @apply focus:border-brand-500 focus:ring-brand-500;
+        @apply dark:border-ink-800 dark:bg-ink-900 dark:text-ink-100 dark:placeholder-ink-500;
+    }
+    select[multiple] { @apply py-2; }
+
+    ::-webkit-scrollbar { height: 10px; width: 10px; }
+    ::-webkit-scrollbar-thumb { @apply rounded-full bg-ink-300 dark:bg-ink-700; }
+    ::-webkit-scrollbar-track { @apply bg-transparent; }
+}
+
+@layer components {
+    /* ---------- surfaces ---------- */
+    .card {
+        @apply rounded-xl2 border border-ink-200/80 bg-white shadow-card;
+        @apply dark:border-ink-800 dark:bg-ink-900;
+    }
+    .card-pad { @apply p-5 sm:p-6; }
+    .card-head {
+        @apply flex flex-wrap items-center justify-between gap-3 border-b border-ink-200/80 px-5 py-4 sm:px-6;
+        @apply dark:border-ink-800;
+    }
+
+    /* ---------- data tables ---------- */
+    .tablewrap { @apply overflow-x-auto; }
+    .dtable { @apply w-full border-collapse text-sm; }
+    .dtable thead th {
+        @apply sticky top-0 z-10 whitespace-nowrap bg-ink-100/90 px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-ink-600 backdrop-blur;
+        @apply dark:bg-ink-800/90 dark:text-ink-300;
+    }
+    .dtable tbody tr {
+        @apply border-t border-ink-200/70 transition-colors dark:border-ink-800;
+        @apply hover:bg-brand-50/60 dark:hover:bg-ink-800/60;
+    }
+    .dtable tbody td { @apply px-4 py-3 align-middle text-ink-800 dark:text-ink-200; }
+    .dtable .num { @apply tabular-nums; }
+    .cell-clamp { @apply block max-w-[22ch] truncate; }
+
+    /* ---------- pills ---------- */
+    .pill { @apply inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none; }
+    .pill-brand   { @apply bg-brand-100 text-brand-800 dark:bg-brand-950 dark:text-brand-200; }
+    .pill-neutral { @apply bg-ink-100 text-ink-700 dark:bg-ink-800 dark:text-ink-300; }
+    .pill-info    { @apply bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-200; }
+    .pill-warn    { @apply bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-200; }
+    .pill-danger  { @apply bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-200; }
+    .pill-violet  { @apply bg-violet-100 text-violet-800 dark:bg-violet-950 dark:text-violet-200; }
+
+    /* ---------- buttons ---------- */
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-lg px-3.5 py-2 text-sm font-semibold;
+        @apply transition active:scale-[.98] disabled:pointer-events-none disabled:opacity-50;
+    }
+    .btn-primary { @apply bg-brand-600 text-white shadow-sm hover:bg-brand-700; }
+    .btn-ghost   { @apply border border-ink-200 bg-white text-ink-700 hover:bg-ink-50 dark:border-ink-700 dark:bg-ink-900 dark:text-ink-200 dark:hover:bg-ink-800; }
+    .btn-danger  { @apply bg-rose-600 text-white shadow-sm hover:bg-rose-700; }
+    .btn-subtle  { @apply text-ink-600 hover:bg-ink-100 dark:text-ink-300 dark:hover:bg-ink-800; }
+    .btn-sm      { @apply px-2.5 py-1.5 text-xs; }
+    .btn-icon    { @apply h-9 w-9 p-0; }
+
+    /* ---------- forms ---------- */
+    .field-label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wide text-ink-600 dark:text-ink-400; }
+    .field-hint  { @apply mt-1 text-xs text-ink-500; }
+
+    /* ---------- sidebar nav ---------- */
+    .navlink {
+        @apply flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition;
+        @apply text-ink-600 hover:bg-ink-100 hover:text-ink-900;
+        @apply dark:text-ink-400 dark:hover:bg-ink-800 dark:hover:text-white;
+    }
+    .navlink-active {
+        @apply bg-brand-600 text-white shadow-sm hover:bg-brand-600 hover:text-white;
+        @apply dark:bg-brand-600 dark:text-white dark:hover:bg-brand-600;
+    }
+    .navlink svg { @apply h-[18px] w-[18px] shrink-0; }
+
+    /* ---------- alerts ---------- */
+    .alert { @apply flex items-start gap-3 rounded-xl border px-4 py-3 text-sm animate-fade-up; }
+    .alert-success { @apply border-brand-200 bg-brand-50 text-brand-900 dark:border-brand-900 dark:bg-brand-950/60 dark:text-brand-100; }
+    .alert-error   { @apply border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-900 dark:bg-rose-950/60 dark:text-rose-100; }
+
+    /* ---------- misc ---------- */
+    .kbd { @apply rounded border border-ink-300 bg-ink-100 px-1.5 py-0.5 font-mono text-[10px] text-ink-600 dark:border-ink-700 dark:bg-ink-800 dark:text-ink-300; }
+    .skeleton { @apply animate-pulse rounded bg-ink-200 dark:bg-ink-800; }
+}
+
+/* Laravel's default pagination markup, restyled to match. */
+@layer components {
+    .pagination-wrap nav[role="navigation"] { @apply flex items-center justify-between gap-4; }
+    .pagination-wrap svg { @apply h-4 w-4; }
+}

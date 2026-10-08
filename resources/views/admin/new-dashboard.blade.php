@@ -1,374 +1,216 @@
+@php
+    $mySite  = $site?->site;
+    $shifts  = array_values(array_filter([$mySite?->shift_1, $mySite?->shift_2]));
+    $canLog  = (bool) $site;
+    $fields  = [
+        'adls' => 'ADLs', 'medical' => 'Medical & health', 'behavior' => 'Behaviour & emotional',
+        'activities' => 'Activities & engagement', 'nutrition' => 'Nutritional intake',
+        'sleep' => 'Sleep patterns', 'notes' => 'Additional notes',
+    ];
+@endphp
+
 <x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center relative w-full">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Welcome to MCLS Document Management System! Please select an option to continue.') }}
-            </h2>
-            <div class="flex justify-end items-center gap-3 mb-3">
-                <div>
-                    <select id="site1" name="site1" class="shadow-sm border-primary rounded-2 px-3 py-2 w-64"
-                        required>
-                        <option value="" disabled>Select an Option</option>
-                        <option value="form" selected>View Resident Log Form</option>
-                        <option value="log">View Latest Log</option>
-                    </select>
-                </div>
+    <x-page-header title="Dashboard"
+                   subtitle="{{ $canLog ? 'Record a shift log for ' . ($mySite->name ?? 'your site') . '.' : 'Overview of recent activity across your sites.' }}">
+        <x-slot name="actions">
+            <a href="{{ route('employee.log.data') }}" class="btn btn-ghost">
+                <x-icon name="logs" class="h-4 w-4" /> View all logs
+            </a>
+        </x-slot>
+    </x-page-header>
 
-                <!-- Tailwind Button Styling -->
-                <!-- <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300">
-                    Submit
-                </button> -->
-            </div>
-        </div>
-    </x-slot>
-    <link href="https://fonts.googleapis.com/css2?family=Muli&family=Rubik:wght@500&display=swap" rel="stylesheet">
-    <style>
-        #section1 {
-            background-image: url('{{ asset(' blur.png') }}');
-            background-size: cover;
-            background-position: center;
-            position: relative;
-        }
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-5">
 
-        form label {
-            font-weight: bold;
-        }
-    </style>
-    <div class="container mx-auto">
-        <!-- Section 1: Form Section -->
-        <div id="section1" class="section1 gradient-one p-6 rounded-lg shadow-lg overflow-scroll">
-            <div id="errorMessages"></div>
-            <form id="logForm" class="space-y-4" method="POST" action="{{ route('formdata.store') }}">
-                @csrf
-                <h2>Please fill out the form below. Note: The fields marked with <span style="color:red">*</span> are
-                    required.</h2>
-                <label for="employeeType" class="required">Employee Type:</label>
-                <select id="employeeType" name="employee_type" required>
-                    <option value="">Select Employee Type</option>
-                    <option value="mcls">MCLS Employee</option>
-                    <option value="agency">Agency Employee</option>
-                </select>
-
-                <div id="mclsFields" style="display: none;">
-                    <label for="mclsName" class="required">Full Name:</label>
-                    <input type="text" id="mclsName" name="mcls_name" required placeholder="John Doe">
-
-                    <label for="mclsEmail" class="required">MCLS Email:</label>
-                    <input type="email" id="mclsEmail" name="mcls_email"
-                        pattern="^[a-zA-Z0-9._%+-]+@multiculturalcls\.org$" placeholder="name@multiculturalcls.org"
-                        required>
-                </div>
-
-                <div id="agencyFields" style="display: none;">
-                    <label for="agencyName" class="required">Agency Name:</label>
-                    <input type="text" id="agencyName" name="agency_name" required placeholder="Agency ABC">
-
-                    <label for="agencyEmployeeName" class="required">Full Name:</label>
-                    <input type="text" id="agencyEmployeeName" name="agency_employee_name" required
-                        placeholder="John Doe">
-                </div>
-
-                <label for="shift" class="required">Date:</label>
-                <input type="date" id="logDateTime" name="log_date">
-
-
-                <label for="shift" class="required">Select Shift:</label>
-                <select id="shift" name="shift" required onchange="toggleCustomShift(this)">
-                    <option value="">Select Shift</option>
-                    <option value="{{ $site ? $site->site->shift_1 : 'morning' }}">
-                        {{ $site ? $site->site->shift_1 : 'Morning' }}
-                    </option>
-                    <option value="{{ $site ? $site->site->shift_2 : 'night' }}">
-                        {{ $site ? $site->site->shift_2 : 'Night' }}
-                    </option>
-                    <option value="custom">Other</option>
-                </select>
-
-                <div id="customShiftContainer" style="display:none; margin-top: 10px;">
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <input type="text" id="customShiftName" placeholder="Custom Shift Name" style="flex: 1;">
-                        <input type="time" id="customShiftFrom" style="width: 130px;">
-                        <input type="time" id="customShiftTo" style="width: 130px;">
-                    </div>
-                </div>
-
-                <input type="hidden" name="shift" id="shiftFinalValue">
-
-
-
-                <input type="hidden" name="site_id" id="site_id" value="{{ $site ? $site->site_id : null }}">
-                <label for="resident_select" class="required">Select Resident:</label>
-                <select name="resident_id" required>
-                    <option value="" selected disabled>Select Resident</option>
-                    @foreach ($site_residents as $data)
-                    <option value="{{ $data->id }}">{{ $data->name }}</option>
-                    @endforeach
-                </select>
-
-                <!-- <input type="hidden" id="logDate" name="log_date"> -->
-                <!-- <input type="hidden" id="logTime" name="log_time"> -->
-
-                <label for="adls" class="required">Activities of Daily Living:</label>
-                <textarea id="adls" name="adls" required placeholder="E.g., Brushed teeth at 8 AM..."></textarea>
-
-                <label for="medical" class="required">Medical and Health Information:</label>
-                <textarea id="medical" name="medical" required placeholder="E.g., Took prescribed medication at 9 AM..."></textarea>
-
-                <label for="behavior" class="required">Behavior and Emotional Well-being:</label>
-                <textarea id="behavior" name="behavior" required placeholder="E.g., SM was happy and engaged during activities..."></textarea>
-
-                <label for="activities" class="required">Activities and Engagement:</label>
-                <textarea id="activities" name="activities" required placeholder="E.g., Participated in group art session..."></textarea>
-
-                <label for="nutrition" class="required">Nutritional Intake:</label>
-                <textarea id="nutrition" name="nutrition" required placeholder="E.g., Ate oatmeal and fruit for breakfast..."></textarea>
-
-                <label for="sleep" class="required">Sleep Patterns:</label>
-                <textarea id="sleep" name="sleep" required placeholder="E.g., Went to bed at 9 PM and woke up at 7 AM..."></textarea>
-
-                <label for="notes" class="required">Additional Notes:</label>
-                <textarea id="notes" name="notes" required placeholder="E.g., No concerns noted today..."></textarea>
-
-                <label for="temperature" class="required">Temperature(°C):</label>
-                <input type="text" id="temperature" name="temperature" required></input>
-
-                <button
-                    class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-300"
-                    type="submit">Submit Log</button>
-            </form>
-        </div>
-
-        <!-- Section 2: Table Section -->
-        <div id="section2" class="section2 gradient-two p-6 rounded-lg shadow-lg overflow-auto hidden">
-            <div class="mew">
-                <h1 class="text-2xl font-semibold mb-4">Latest Log Entry</h1>
-                @if (auth()->user()->usertype == 'admin' || auth()->user()->usertype == 'siteadmin')
-                <div class="flex gap-4">
-                    <div style="display: flex; flex-direction: column;">
-                        <label for="filter_site" class="required">Site of Work:</label>
-                        <select id="filter_site" name="filter_site_id" required class="filter_site_select">
-                            <option value="" selected disabled>All Site</option>
-                            @foreach ($sites as $site)
-                            <option value="{{ $site->id }}">{{ $site->name }}</option>
+        {{-- Log entry --}}
+        <div class="xl:col-span-3">
+            @if ($canLog)
+                <div class="card" x-data="{
+                        type: '',
+                        saving: false,
+                        errors: {},
+                        toast: null,
+                        async submit(e) {
+                            this.saving = true; this.errors = {};
+                            const res = await fetch('{{ route('formdata.store') }}', {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content, 'Accept': 'application/json' },
+                                body: new FormData(e.target)
+                            });
+                            const body = await res.json();
+                            this.saving = false;
+                            if (res.status === 201) {
+                                this.paint(body.data);
+                                e.target.reset(); this.type = '';
+                                this.toast = 'Log submitted successfully.';
+                                setTimeout(() => this.toast = null, 4000);
+                            } else if (res.status === 422) {
+                                this.errors = body.errors || {};
+                            } else {
+                                this.toast = body.message || 'Something went wrong.';
+                                setTimeout(() => this.toast = null, 6000);
+                            }
+                        },
+                        paint(d) {
+                            const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v || '—'; };
+                            set('display_employeeType', d.employee_type === 'mcls' ? 'MCLS' : 'Agency');
+                            set('display_fullName', d.mcls_name || d.agency_employee_name);
+                            set('display_site', d.site ? d.site.name : '');
+                            set('display_shift', d.shift);
+                            @foreach (array_keys($fields) as $f)
+                                set('display_{{ $f }}', d.{{ $f }});
                             @endforeach
-                        </select>
+                            set('display_temperature', d.temperature);
+                        }
+                     }">
+                    <div class="card-head">
+                        <div>
+                            <h2 class="text-base font-bold text-ink-900 dark:text-white">New shift log</h2>
+                            <p class="mt-0.5 text-xs text-ink-500">{{ $mySite->name ?? 'Your site' }} · {{ now()->format('D d M Y') }}</p>
+                        </div>
+                        <span class="pill pill-brand"><x-icon name="clock" class="h-3 w-3" /> Auto-timed</span>
                     </div>
-                    <div style="display: flex; flex-direction: column;">
-                        <label for="filter_resident_select" class="required">Resident:</label>
-                        <select id="filter_resident_select" name="filter_resident_id" required>
-                            <option value="" selected disabled>All Resident</option>
-                        </select>
-                    </div>
+
+                    <form id="logForm" @submit.prevent="submit" class="card-pad space-y-5">
+                        <div x-show="toast" x-cloak class="alert alert-success" x-text="toast"></div>
+
+                        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                                <label class="field-label" for="employeeType">Staff type</label>
+                                <select id="employeeType" name="employee_type" x-model="type" class="w-full text-sm" required>
+                                    <option value="">Select type</option>
+                                    <option value="mcls">MCLS Employee</option>
+                                    <option value="agency">Agency Employee</option>
+                                </select>
+                                <template x-if="errors.employee_type"><p class="mt-1 text-xs text-rose-600" x-text="errors.employee_type[0]"></p></template>
+                            </div>
+
+                            <div>
+                                <label class="field-label" for="logDate">Shift date</label>
+                                <input id="logDate" type="date" name="log_date" value="{{ now()->toDateString() }}" class="w-full text-sm" required>
+                                <template x-if="errors.log_date"><p class="mt-1 text-xs text-rose-600" x-text="errors.log_date[0]"></p></template>
+                            </div>
+
+                            <template x-if="type === 'mcls'">
+                                <div class="grid gap-4 sm:col-span-2 sm:grid-cols-2">
+                                    <div>
+                                        <label class="field-label">MCLS name</label>
+                                        <input type="text" name="mcls_name" class="w-full text-sm">
+                                        <template x-if="errors.mcls_name"><p class="mt-1 text-xs text-rose-600" x-text="errors.mcls_name[0]"></p></template>
+                                    </div>
+                                    <div>
+                                        <label class="field-label">MCLS email</label>
+                                        <input type="email" name="mcls_email" class="w-full text-sm" placeholder="you@multiculturalcls.org">
+                                        <template x-if="errors.mcls_email"><p class="mt-1 text-xs text-rose-600" x-text="errors.mcls_email[0]"></p></template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <template x-if="type === 'agency'">
+                                <div class="grid gap-4 sm:col-span-2 sm:grid-cols-2">
+                                    <div>
+                                        <label class="field-label">Agency name</label>
+                                        <input type="text" name="agency_name" class="w-full text-sm">
+                                        <template x-if="errors.agency_name"><p class="mt-1 text-xs text-rose-600" x-text="errors.agency_name[0]"></p></template>
+                                    </div>
+                                    <div>
+                                        <label class="field-label">Agency employee name</label>
+                                        <input type="text" name="agency_employee_name" class="w-full text-sm">
+                                        <template x-if="errors.agency_employee_name"><p class="mt-1 text-xs text-rose-600" x-text="errors.agency_employee_name[0]"></p></template>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <div>
+                                <label class="field-label" for="resident_id">Resident</label>
+                                <select id="resident_id" name="resident_id" class="w-full text-sm" required>
+                                    <option value="">Select resident</option>
+                                    @foreach ($site_residents as $r)
+                                        <option value="{{ $r->id }}">{{ $r->name }}</option>
+                                    @endforeach
+                                </select>
+                                <template x-if="errors.resident_id"><p class="mt-1 text-xs text-rose-600" x-text="errors.resident_id[0]"></p></template>
+                            </div>
+
+                            <div>
+                                <label class="field-label" for="shift">Shift</label>
+                                <select id="shift" name="shift" class="w-full text-sm" required>
+                                    @forelse ($shifts as $s)
+                                        <option value="{{ $s }}">{{ ucfirst($s) }}</option>
+                                    @empty
+                                        <option value="morning">Morning</option>
+                                        <option value="night">Night</option>
+                                    @endforelse
+                                </select>
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label class="field-label" for="temperature">Temperature (°C)</label>
+                                <input id="temperature" type="text" name="temperature" inputmode="decimal" class="w-full text-sm sm:max-w-[180px]">
+                            </div>
+
+                            @foreach ($fields as $name => $label)
+                                <div class="sm:col-span-2">
+                                    <label class="field-label" for="{{ $name }}">{{ $label }}</label>
+                                    <textarea id="{{ $name }}" name="{{ $name }}" rows="2" class="w-full text-sm"
+                                        @if (in_array($name, ['adls', 'medical', 'behavior'])) required @endif></textarea>
+                                    <template x-if="errors.{{ $name }}"><p class="mt-1 text-xs text-rose-600" x-text="errors.{{ $name }}[0]"></p></template>
+                                </div>
+                            @endforeach
+                        </div>
+
+                        <div class="flex items-center gap-3 border-t border-ink-200/80 pt-4 dark:border-ink-800">
+                            <button type="submit" class="btn btn-primary" :disabled="saving">
+                                <x-icon name="check" class="h-4 w-4" />
+                                <span x-text="saving ? 'Saving…' : 'Submit log'"></span>
+                            </button>
+                            <button type="reset" @click="type = ''; errors = {}" class="btn btn-ghost">Reset</button>
+                        </div>
+                    </form>
                 </div>
+            @else
+                <x-card>
+                    <x-empty-state icon="form" title="No site assigned to your account"
+                                   message="Shift logs are recorded against a site. Your role reviews logs rather than recording them — use Resident Log Data to browse and export." >
+                        <x-slot name="actions">
+                            <a href="{{ route('employee.log.data') }}" class="btn btn-primary">
+                                <x-icon name="logs" class="h-4 w-4" /> Go to Resident Log Data
+                            </a>
+                        </x-slot>
+                    </x-empty-state>
+                </x-card>
+            @endif
+        </div>
+
+        {{-- Latest log --}}
+        <div class="xl:col-span-2">
+            <x-card title="Most recent log" subtitle="The latest entry from a site you can access.">
+                @if ($form_data)
+                    <dl class="divide-y divide-ink-200/80 dark:divide-ink-800">
+                        @foreach ([
+                            'display_employeeType' => ['Staff type', $form_data->employee_type === 'mcls' ? 'MCLS' : 'Agency'],
+                            'display_fullName'     => ['Staff name', $form_data->mcls_name ?: $form_data->agency_employee_name],
+                            'display_site'         => ['Site', $form_data->site->name ?? '—'],
+                            'display_shift'        => ['Shift', ucfirst($form_data->shift)],
+                            'display_temperature'  => ['Temperature', $form_data->temperature],
+                            'display_adls'         => ['ADLs', $form_data->adls],
+                            'display_medical'      => ['Medical & health', $form_data->medical],
+                            'display_behavior'     => ['Behaviour', $form_data->behavior],
+                            'display_activities'   => ['Activities', $form_data->activities],
+                            'display_nutrition'    => ['Nutrition', $form_data->nutrition],
+                            'display_sleep'        => ['Sleep', $form_data->sleep],
+                            'display_notes'        => ['Notes', $form_data->notes],
+                        ] as $id => [$label, $value])
+                            <div class="grid grid-cols-3 gap-3 py-2.5">
+                                <dt class="text-[11px] font-semibold uppercase tracking-wide text-ink-500">{{ $label }}</dt>
+                                <dd id="{{ $id }}" class="col-span-2 text-sm text-ink-800 dark:text-ink-200">{{ $value ?: '—' }}</dd>
+                            </div>
+                        @endforeach
+                    </dl>
+                @else
+                    <x-empty-state icon="inbox" title="No logs yet"
+                                   message="Once a shift log is recorded it will show here." />
                 @endif
-                <table class="min-w-full bg-white border border-gray-300 rounded-lg shadow-md">
-                    <tbody>
-                        <tr>
-                            <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
-                            <th class="p-4 text-left text-sm font-medium text-gray-700"></th>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Employee Type:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_employeeType">
-                                {{ $form_data ? $form_data->employee_type : '-' }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Full Name:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_fullName">
-                                {{ $form_data ? ($form_data->mcls_name ? $form_data->mcls_name : $form_data->agency_employee_name) : '-' }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Site of Work:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_site">{{ $form_data ? $form_data->site->name : '-' }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Shift:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_shift">{{ $form_data ? $form_data->shift : '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Activities of Daily Living:
-                            </td>
-                            <td class="p-4 text-sm text-gray-900" id="display_adls">{{ $form_data ? $form_data->adls : '-' }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Medical and Health Information:
-                            </td>
-                            <td class="p-4 text-sm text-gray-900" id="display_medical">{{ $form_data ? $form_data->medical : '-' }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Behavior and Emotional Well-being:
-                            </td>
-                            <td class="p-4 text-sm text-gray-900" id="display_behavior">
-                                {{ $form_data ? $form_data->behavior : '-' }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Activities and Engagement:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_activities">
-                                {{ $form_data ? $form_data->activities : '-' }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Nutritional Intake:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_nutrition">
-                                {{ $form_data ? $form_data->nutrition : '-' }}
-                            </td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Sleep Patterns:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_sleep">{{ $form_data ? $form_data->sleep : '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Additional Notes:</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_notes">{{ $form_data ? $form_data->notes : '-' }}</td>
-                        </tr>
-                        <tr>
-                            <td class="p-4 text-sm font-semibold text-gray-700">Temperature(°C):</td>
-                            <td class="p-4 text-sm text-gray-900" id="display_temperature">{{ $form_data ? $form_data->temperature : '-' }}</td>
-                        </tr>
-                    </tbody>
-                    
-                </table>
-            </div>
+            </x-card>
         </div>
     </div>
-    <script>
-        function toggleCustomShift(select) {
-            const container = document.getElementById('customShiftContainer');
-            const hiddenInput = document.getElementById('shiftFinalValue');
-
-            if (select.value === 'custom') {
-                container.style.display = 'block';
-                hiddenInput.disabled = false;
-                select.name = 'unused_shift'; // Temporarily disable this select from being submitted
-            } else {
-                container.style.display = 'none';
-                hiddenInput.value = select.value;
-                hiddenInput.disabled = false;
-                select.name = 'shift';
-            }
-        }
-
-        document.getElementById('customShiftTo').addEventListener('input', function() {
-            const name = document.getElementById('customShiftName').value;
-            const from = document.getElementById('customShiftFrom').value;
-            const to = document.getElementById('customShiftTo').value;
-
-            if (name && from && to) {
-                document.getElementById('shiftFinalValue').value = `${name} (${from} - ${to})`;
-            }
-        });
-
-        document.getElementById("site1").addEventListener("change", function() {
-            const formSection = document.getElementById("section1");
-            const logSection = document.getElementById("section2");
-
-            if (this.value === "form") {
-                formSection.style.display = "block";
-                logSection.style.display = "none";
-            } else if (this.value === "log") {
-                formSection.style.display = "none";
-                logSection.style.display = "block";
-            } else {
-                formSection.style.display = "none";
-                logSection.style.display = "none";
-            }
-        });
-
-        document.getElementById("employeeType").addEventListener("change", function() {
-            let mclsFields = document.getElementById("mclsFields");
-            let agencyFields = document.getElementById("agencyFields");
-
-            if (this.value === "mcls") {
-                mclsFields.style.display = "block";
-                agencyFields.style.display = "none";
-
-                // Enable required for MCLS inputs, disable for Agency inputs
-                mclsFields.querySelectorAll("input").forEach(input => input.setAttribute("required", "required"));
-                agencyFields.querySelectorAll("input").forEach(input => input.removeAttribute("required"));
-            } else if (this.value === "agency") {
-                mclsFields.style.display = "none";
-                agencyFields.style.display = "block";
-
-                // Enable required for Agency inputs, disable for MCLS inputs
-                agencyFields.querySelectorAll("input").forEach(input => input.setAttribute("required", "required"));
-                mclsFields.querySelectorAll("input").forEach(input => input.removeAttribute("required"));
-            } else {
-                mclsFields.style.display = "none";
-                agencyFields.style.display = "none";
-
-                // Remove required from all inputs if no selection
-                mclsFields.querySelectorAll("input").forEach(input => input.removeAttribute("required"));
-                agencyFields.querySelectorAll("input").forEach(input => input.removeAttribute("required"));
-            }
-        });
-
-        document.getElementById("logForm").addEventListener("submit", function(event) {
-            event.preventDefault(); // Prevent default form submission
-
-            // Set logDate and logTime automatically
-            // document.getElementById("logDate").value = new Date().toISOString().split("T")[0];
-            // document.getElementById("logTime").value = new Date().toLocaleTimeString();
-
-            let formData = new FormData(this);
-            let errorContainer = document.getElementById("errorMessages");
-            errorContainer.innerHTML = ""; // Clear previous errors
-
-            fetch("{{ route('formdata.store') }}", {
-                    method: "POST",
-                    headers: {
-                        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: formData
-                })
-                .then(response => response.json().then(data => ({
-                    status: response.status,
-                    body: data
-                })))
-                .then(({
-                    status,
-                    body
-                }) => {
-                    if (status === 422) {
-                        // Display validation errors
-                        Object.entries(body.errors).forEach(([key, messages]) => {
-                            let errorText = document.createElement("p");
-                            errorText.style.color = "red";
-                            errorText.textContent = messages.join(" ");
-                            errorContainer.appendChild(errorText);
-                        });
-                    } else if (status === 201) {
-                        updateTableWithData(body.data);
-                        alert("Form submitted successfully!");
-                        document.getElementById("logForm").reset();
-                    } else {
-                        throw new Error(body.message || "Something went wrong.");
-                    }
-                })
-                .catch(error => {
-                    alert(error.message);
-                });
-        });
-
-        function updateTableWithData(data) {
-            document.getElementById('display_employeeType').textContent = data.employee_type || 'N/A';
-            document.getElementById('display_fullName').textContent = data.mcls_name ? data.mcls_name : data
-                .agency_employee_name || 'N/A';
-            document.getElementById('display_site').textContent = data.site ? data.site.name : 'N/A';
-            document.getElementById('display_shift').textContent = data.shift || 'N/A';
-            document.getElementById('display_adls').textContent = data.adls || 'N/A';
-            document.getElementById('display_medical').textContent = data.medical || 'N/A';
-            document.getElementById('display_behavior').textContent = data.behavior || 'N/A';
-            document.getElementById('display_activities').textContent = data.activities || 'N/A';
-            document.getElementById('display_nutrition').textContent = data.nutrition || 'N/A';
-            document.getElementById('display_sleep').textContent = data.sleep || 'N/A';
-            document.getElementById('display_notes').textContent = data.notes || 'N/A';
-            document.getElementById('display_temperature').textContent = data.temperature || 'N/A';
-        }
-    </script>
 </x-app-layout>

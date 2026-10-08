@@ -1,48 +1,38 @@
 <x-app-layout>
     <style>
-        .tick {
-            color: green;
-            font-weight: bold;
-            font-size: 18px;
+        /* Weekly checklist grid, themed with the design system tokens. */
+        .cgrid table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+        .cgrid th, .cgrid td {
+            border-bottom: 1px solid rgb(220 225 224 / 1);
+            padding: 9px 12px; text-align: center; vertical-align: middle;
         }
+        .cgrid th {
+            background: rgb(236 239 238 / 1); color: rgb(87 98 96 / 1);
+            font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+            position: sticky; top: 0; z-index: 5;
+        }
+        .cgrid td:first-child, .cgrid th:first-child { text-align: left; }
+        .cgrid tbody tr:hover td, .cgrid tr:hover td { background: rgb(239 250 247 / .55); }
+        .cgrid .section-header td, .cgrid .section-header th {
+            background: rgb(236 239 238 / 1); font-weight: 700; text-align: left;
+            font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: rgb(87 98 96 / 1);
+        }
+        .cgrid .highlight { font-weight: 700; }
+        .cgrid .monthly { background: rgb(214 242 234 / .6); }
+        .cgrid h2 { font-size: 15px; font-weight: 700; text-align: left !important; text-decoration: none !important; margin: 0 0 12px; }
 
-        .cross {
-            color: red;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .container {
-            width: 90%;
-            margin: 20px auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            background-color: white;
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            padding: 10px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #005f73;
-            color: white;
-        }
-
-        .section-header {
-            background-color: #d1d1d1;
-            font-weight: bold;
-        }
+        .dark .cgrid th { background: rgb(31 39 36 / 1); color: rgb(192 202 198 / 1); }
+        .dark .cgrid th, .dark .cgrid td { border-bottom-color: rgb(42 51 48 / 1); }
+        .dark .cgrid tbody tr:hover td, .dark .cgrid tr:hover td { background: rgb(31 39 36 / .7); }
+        .dark .cgrid .section-header td, .dark .cgrid .section-header th { background: rgb(31 39 36 / 1); color: rgb(192 202 198 / 1); }
+        .dark .cgrid .monthly { background: rgb(19 77 69 / .35); }
     </style>
 
-    <div class="container mb-6">
+    <x-page-header title="Site Checklist" subtitle="Weekly task completion, by site and week." />
+
+    <div class="cgrid">
+
+    <div class="card card-pad mb-6">
         <form method="GET" action="{{ route('admin.site.checklist') }}" class="flex flex-col md:flex-row gap-4">
             <div class="flex-1">
                 <label for="site_id" class="block text-black font-semibold mb-2">Select Site</label>
@@ -81,13 +71,13 @@
 
 
     @if (!$selectedSiteId)
-    <div class="container mb-6">
+    <div class="card card-pad mb-6">
         <p class="text-red-500 text-center font-semibold">Please select a site to view the checklist data.</p>
     </div>
     @endif
 
     @if ($selectedSiteId)
-    <div class="container">
+    <div class="card card-pad mb-6">
         <h2 style="text-align:center;">Day Shift Checklist for Week: {{ \Carbon\Carbon::parse($weekStart)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($weekEnd)->format('M d, Y') }}</h2>
         <table>
             <tr class="section-header">
@@ -152,7 +142,7 @@
         </table>
     </div>
 
-    <div class="container">
+    <div class="card card-pad mb-6">
         <h2 style="text-align:center;">Night Shift Checklist for Week: {{ \Carbon\Carbon::parse($weekStart)->format('M d, Y') }} - {{ \Carbon\Carbon::parse($weekEnd)->format('M d, Y') }}</h2>
         <table>
             <tr class="section-header">
@@ -217,6 +207,7 @@
         </table>
     </div>
     @endif
+    </div>
 </x-app-layout>
 
 <script>

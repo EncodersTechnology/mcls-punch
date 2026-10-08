@@ -1,257 +1,239 @@
+@php $tab = request('tab', 'sites'); @endphp
+
 <x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Manage Sites and Residents</h2>
-    </x-slot>
+    <div x-data="{
+            tab: '{{ $tab }}',
+            siteModal: null, site: { id: null, name: '', shift_1: '', shift_2: '' },
+            resModal: null,  res:  { id: null, name: '', site_id: '' },
+            openSite(s)  { this.site = s ?? { id: null, name: '', shift_1: '', shift_2: '' }; this.siteModal = s ? 'edit' : 'create'; },
+            openRes(r)   { this.res  = r ?? { id: null, name: '', site_id: '' };             this.resModal  = r ? 'edit' : 'create'; }
+         }">
 
-    <link href="https://fonts.googleapis.com/css2?family=Muli&family=Rubik:wght@500&display=swap" rel="stylesheet">
-    <style>
-        .active-tab {
-            background-color: #3490DC;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease-in-out;
-            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
-            font-family: 'Rubik', sans-serif;
-            text-align: center;
-        }
-    </style>
-    <div class="container mx-auto mt-8">
-        @if (session('success'))
-        <div class="bg-green-500 text-white p-4 mb-4 rounded">
-            {{ session('success') }}
+        <x-page-header title="Sites and Residents"
+                       subtitle="Locations covered by the service and the people living at each.">
+            <x-slot name="actions">
+                <a href="{{ route('admin.resident.export') }}" class="btn btn-ghost">
+                    <x-icon name="download" class="h-4 w-4" /> Export CSV
+                </a>
+                <button type="button" @click="tab === 'sites' ? openSite(null) : openRes(null)" class="btn btn-primary">
+                    <x-icon name="plus" class="h-4 w-4" />
+                    <span x-text="tab === 'sites' ? 'Add site' : 'Add resident'"></span>
+                </button>
+            </x-slot>
+        </x-page-header>
+
+        {{-- Tabs --}}
+        <div class="mb-5 inline-flex rounded-lg border border-ink-200 bg-white p-1 dark:border-ink-800 dark:bg-ink-900">
+            <button type="button" @click="tab = 'sites'"
+                    :class="tab === 'sites' ? 'bg-brand-600 text-white shadow-sm' : 'text-ink-600 hover:bg-ink-100 dark:text-ink-400 dark:hover:bg-ink-800'"
+                    class="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition">
+                <x-icon name="sites" class="h-4 w-4" /> Sites
+                <span class="pill pill-neutral num">{{ $sites->total() }}</span>
+            </button>
+            <button type="button" @click="tab = 'residents'"
+                    :class="tab === 'residents' ? 'bg-brand-600 text-white shadow-sm' : 'text-ink-600 hover:bg-ink-100 dark:text-ink-400 dark:hover:bg-ink-800'"
+                    class="flex items-center gap-2 rounded-md px-4 py-2 text-sm font-semibold transition">
+                <x-icon name="users" class="h-4 w-4" /> Residents
+                <span class="pill pill-neutral num">{{ $residents->total() }}</span>
+            </button>
         </div>
-        @endif
 
-        <div class="tabs">
-            <div class="flex space-x-4 border-b-2 mb-4 pb-3">
-                <button id="sites-tab"
-                    class="text-lg py-2 px-4 focus:outline-none tab-button active-tab text-brown">Sites</button>
-                <button id="residents-tab"
-                    class="text-lg py-2 px-4 focus:outline-none tab-button text-brown">Residents</button>
-            </div>
-
-            <!-- Sites Tab -->
-            <div id="sites-content" class="tab-content">
-                <div class="flex justify-between mb-4">
-                    <button id="add-site-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add Site</button>
+        {{-- Sites --}}
+        <div x-show="tab === 'sites'" x-cloak>
+            <form method="GET" action="{{ route('admin.resident') }}" class="card card-pad mb-4">
+                <input type="hidden" name="tab" value="sites">
+                <div class="flex flex-wrap items-end gap-3">
+                    <div class="min-w-[220px] flex-1">
+                        <label for="s-search" class="field-label">Search sites</label>
+                        <div class="relative">
+                            <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+                            <input id="s-search" type="search" name="site_search" value="{{ $siteSearch }}"
+                                   placeholder="Site name…" class="w-full rounded-lg pl-9 text-sm">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary"><x-icon name="filter" class="h-4 w-4" /> Search</button>
+                    @if ($siteSearch)<a href="{{ route('admin.resident') }}" class="btn btn-ghost">Clear</a>@endif
                 </div>
-                <table class="min-w-full text-black border border-gray-700">
-                    <thead>
-                        <tr>
-                            <th class="py-2 px-4 border-b text-left">ID</th>
-                            <th class="py-2 px-4 border-b text-left">Name</th>
-                            <th class="py-2 px-4 border-b text-left">Morning Shift</th>
-                            <th class="py-2 px-4 border-b text-left">Night Shift</th>
-                            <th class="py-2 px-4 border-b text-left">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($sites as $site)
-                        <tr>
-                            <td class="py-2 px-4 border-b">{{ $site->id }}</td>
-                            <td class="py-2 px-4 border-b">{{ $site->name }}</td>
-                            <td class="py-2 px-4 border-b">{{ $site->shift_1 }}</td>
-                            <td class="py-2 px-4 border-b">{{ $site->shift_2 }}</td>
-                            <td class="py-2 px-4 border-b">
-                                <button data-id="{{ $site->id }}" data-name="{{ $site->name }}"
-                                    data-shift_1="{{ $site->shift_1 }}" data-shift_2="{{ $site->shift_2 }}"
-                                    class="edit-site-btn text-blue-400 hover:text-blue-600">Edit</button> |
-                                <form action="{{ route('sites.destroy', $site) }}" method="POST"
-                                    style="display:inline;"
-                                    onsubmit="return confirm('Are you sure You want to Delete?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-500 hover:text-red-700">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            </form>
 
-            </div>
-
-            <!-- Residents Tab -->
-            <div id="residents-content" class="tab-content hidden">
-                <div class="flex justify-between mb-4">
-                    <button id="add-resident-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Add Resident</button>
-                </div>
-                <table class="min-w-full text-black border border-gray-700">
-                    <thead>
-                        <tr>
-                            <th class="py-2 px-4 text-left">ID</th>
-                            <th class="py-2 px-4 text-left">Name</th>
-                            <th class="py-2 px-4 text-left">Site</th>
-                            <th class="py-2 px-4 text-left">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($residents as $resident)
-                        <tr>
-                            <td class="py-2 px-4 border-b">{{ $resident->id }}</td>
-                            <td class="py-2 px-4 border-b">{{ $resident->name }}</td>
-                            <td class="py-2 px-4 border-b">{{ $resident->site->name }}</td>
-                            <td class="py-2 px-4 border-b">
-                                <button data-id="{{ $resident->id }}" data-name="{{ $resident->name }}"
-                                    data-site="{{ $resident->site->id }}"
-                                    class="edit-resident-btn text-blue-400 hover:text-blue-600">Edit</button> |
-                                <form action="{{ route('residents.destroy', $resident) }}" method="POST"
-                                    style="display:inline;"
-                                    onsubmit="return confirm('Are you sure You want to Delete?');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-500 hover:text-red-700">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <div class="card overflow-hidden">
+                @if ($sites->count())
+                    <div class="tablewrap">
+                        <table class="dtable">
+                            <thead>
+                                <tr><th>Site</th><th>Shift 1</th><th>Shift 2</th><th>Residents</th><th class="text-right">Actions</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($sites as $site)
+                                    @php $sitePayload = ['id' => $site->id, 'name' => $site->name, 'shift_1' => $site->shift_1, 'shift_2' => $site->shift_2]; @endphp
+                                    <tr>
+                                        <td class="font-semibold text-ink-900 dark:text-white">{{ $site->name }}</td>
+                                        <td>{{ $site->shift_1 ?: '—' }}</td>
+                                        <td>{{ $site->shift_2 ?: '—' }}</td>
+                                        <td><span class="pill pill-neutral num">{{ $site->residents_count }}</span></td>
+                                        <td>
+                                            <div class="flex items-center justify-end gap-1">
+                                                <button type="button" class="btn btn-subtle btn-sm btn-icon" title="Edit"
+                                                        @click='openSite(@json($sitePayload))'>
+                                                    <x-icon name="edit" class="h-4 w-4" />
+                                                </button>
+                                                <form action="{{ route('sites.destroy', $site) }}" method="POST"
+                                                      onsubmit="return confirm('Delete this site? Sites with recorded logs cannot be deleted.');">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" title="Delete"
+                                                            class="btn btn-sm btn-icon text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40">
+                                                        <x-icon name="trash" class="h-4 w-4" />
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <x-pagination :paginator="$sites" label="sites" />
+                @else
+                    <x-empty-state icon="sites" title="No sites found"
+                                   message="Add a site to start recording resident logs against it." />
+                @endif
             </div>
         </div>
 
-        <!-- Modal for adding/editing Sites -->
-        <div id="site-modal" class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex justify-center items-center">
-            <div class="bg-gray-900 p-6 rounded-lg shadow-lg w-1/3">
-                <h3 class="text-lg font-semibold mb-4 text-white">Add Site</h3>
-                <form id="site-form" action="{{ route('sites.store') }}" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="site-name" class="block text-sm font-medium text-gray-300">Site Name</label>
-                        <input type="text" name="name" id="site-name"
-                            class="mt-1 block w-full border-gray-500 text-white bg-gray-800 rounded-md shadow-sm"
-                            required>
+        {{-- Residents --}}
+        <div x-show="tab === 'residents'" x-cloak>
+            <form method="GET" action="{{ route('admin.resident') }}" class="card card-pad mb-4">
+                <input type="hidden" name="tab" value="residents">
+                <div class="flex flex-wrap items-end gap-3">
+                    <div class="min-w-[220px] flex-1">
+                        <label for="r-search" class="field-label">Search residents</label>
+                        <div class="relative">
+                            <x-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+                            <input id="r-search" type="search" name="resident_search" value="{{ $residentSearch }}"
+                                   placeholder="Resident name…" class="w-full rounded-lg pl-9 text-sm">
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label for="shift_1" class="block text-sm font-medium text-gray-300">Morning Shift</label>
-                        <input placeholder="Eg: Morning Shift (8:00 AM to 8:00 PM)" type="text" name="shift_1"
-                            id="shift_1"
-                            class="mt-1 block w-full border-gray-500 text-white bg-gray-800 rounded-md shadow-sm"
-                            required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="shift_2" class="block text-sm font-medium text-gray-300">Night Shift</label>
-                        <input placeholder="Eg: Night Shift (8:00 PM to 8:00 AM)" type="text" name="shift_2"
-                            id="shift_2"
-                            class="mt-1 block w-full border-gray-500 text-white bg-gray-800 rounded-md shadow-sm"
-                            required>
-                    </div>
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save
-                        Site</button>
-                </form>
-                <button id="close-site-modal" class="mt-4 text-red-500 hover:text-red-700">Cancel</button>
-            </div>
-        </div>
-
-        <!-- Modal for adding/editing Residents -->
-        <div id="resident-modal"
-            class="fixed inset-0 bg-gray-800 bg-opacity-50 hidden flex justify-center items-center">
-            <div class="bg-gray-900 p-6 rounded-lg shadow-lg w-1/3">
-                <h3 class="text-lg font-semibold mb-4 text-white">Add Resident</h3>
-                <form id="resident-form" action="{{ route('residents.store') }}" method="POST">
-                    @csrf
-                    <div class="mb-4">
-                        <label for="resident-name" class="block text-sm font-medium text-gray-300">Resident
-                            Name</label>
-                        <input type="text" name="name" id="resident-name"
-                            class="mt-1 block w-full border-gray-500 text-white bg-gray-800 rounded-md shadow-sm"
-                            required>
-                    </div>
-                    <div class="mb-4">
-                        <label for="site-id" class="block text-sm font-medium text-gray-300">Select Site</label>
-                        <select name="site_id" id="site-id"
-                            class="mt-1 block w-full border-gray-500 text-white bg-gray-800 rounded-md shadow-sm"
-                            required>
-                            @foreach ($sites as $site)
-                            <option value="{{ $site->id }}">{{ $site->name }}</option>
+                    <div class="min-w-[180px]">
+                        <label for="r-site" class="field-label">Site</label>
+                        <select id="r-site" name="site_id" class="w-full text-sm">
+                            <option value="">All sites</option>
+                            @foreach ($allSites as $s)
+                                <option value="{{ $s->id }}" @selected(request('site_id') == $s->id)>{{ $s->name }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Save
-                        Resident</button>
+                    <button type="submit" class="btn btn-primary"><x-icon name="filter" class="h-4 w-4" /> Search</button>
+                    @if ($residentSearch || request('site_id'))<a href="{{ route('admin.resident', ['tab' => 'residents']) }}" class="btn btn-ghost">Clear</a>@endif
+                </div>
+            </form>
+
+            <div class="card overflow-hidden">
+                @if ($residents->count())
+                    <div class="tablewrap">
+                        <table class="dtable">
+                            <thead><tr><th>Resident</th><th>Site</th><th class="text-right">Actions</th></tr></thead>
+                            <tbody>
+                                @foreach ($residents as $resident)
+                                    @php $resPayload = ['id' => $resident->id, 'name' => $resident->name, 'site_id' => $resident->site_id]; @endphp
+                                    <tr>
+                                        <td class="font-semibold text-ink-900 dark:text-white">{{ $resident->name }}</td>
+                                        <td><span class="pill pill-neutral">{{ $resident->site->name ?? '—' }}</span></td>
+                                        <td>
+                                            <div class="flex items-center justify-end gap-1">
+                                                <button type="button" class="btn btn-subtle btn-sm btn-icon" title="Edit"
+                                                        @click='openRes(@json($resPayload))'>
+                                                    <x-icon name="edit" class="h-4 w-4" />
+                                                </button>
+                                                <form action="{{ route('residents.destroy', $resident) }}" method="POST"
+                                                      onsubmit="return confirm('Delete this resident? Residents with recorded logs cannot be deleted.');">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" title="Delete"
+                                                            class="btn btn-sm btn-icon text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40">
+                                                        <x-icon name="trash" class="h-4 w-4" />
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    <x-pagination :paginator="$residents" label="residents" />
+                @else
+                    <x-empty-state icon="users" title="No residents found"
+                                   message="Add residents so staff can record logs against them." />
+                @endif
+            </div>
+        </div>
+
+        {{-- Site modal --}}
+        <div x-show="siteModal" x-cloak @keydown.escape.window="siteModal = null"
+             class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink-950/60 p-4 backdrop-blur-sm sm:p-8">
+            <div @click.outside="siteModal = null" x-transition
+                 class="w-full max-w-lg rounded-xl2 border border-ink-200 bg-white shadow-lift dark:border-ink-800 dark:bg-ink-900">
+                <form method="POST" :action="siteModal === 'edit' ? '/admin/sites/' + site.id : '{{ route('sites.store') }}'">
+                    @csrf
+                    <template x-if="siteModal === 'edit'"><input type="hidden" name="_method" value="PUT"></template>
+                    <div class="card-head">
+                        <h2 class="text-base font-bold text-ink-900 dark:text-white" x-text="siteModal === 'edit' ? 'Edit site' : 'Add site'"></h2>
+                        <button type="button" @click="siteModal = null" class="btn btn-subtle btn-icon"><x-icon name="close" /></button>
+                    </div>
+                    <div class="card-pad grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="sm:col-span-2">
+                            <label class="field-label">Site name</label>
+                            <input type="text" name="name" x-model="site.name" class="w-full text-sm" required>
+                        </div>
+                        <div>
+                            <label class="field-label">Shift 1 label</label>
+                            <input type="text" name="shift_1" x-model="site.shift_1" class="w-full text-sm" placeholder="e.g. Morning" required>
+                        </div>
+                        <div>
+                            <label class="field-label">Shift 2 label</label>
+                            <input type="text" name="shift_2" x-model="site.shift_2" class="w-full text-sm" placeholder="e.g. Night" required>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 border-t border-ink-200/80 px-5 py-3.5 dark:border-ink-800">
+                        <button type="button" @click="siteModal = null" class="btn btn-ghost">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><x-icon name="check" class="h-4 w-4" /> Save site</button>
+                    </div>
                 </form>
-                <button id="close-resident-modal" class="mt-4 text-red-500 hover:text-red-700">Cancel</button>
+            </div>
+        </div>
+
+        {{-- Resident modal --}}
+        <div x-show="resModal" x-cloak @keydown.escape.window="resModal = null"
+             class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-ink-950/60 p-4 backdrop-blur-sm sm:p-8">
+            <div @click.outside="resModal = null" x-transition
+                 class="w-full max-w-lg rounded-xl2 border border-ink-200 bg-white shadow-lift dark:border-ink-800 dark:bg-ink-900">
+                <form method="POST" :action="resModal === 'edit' ? '/admin/residents/' + res.id : '{{ route('residents.store') }}'">
+                    @csrf
+                    <template x-if="resModal === 'edit'"><input type="hidden" name="_method" value="PUT"></template>
+                    <div class="card-head">
+                        <h2 class="text-base font-bold text-ink-900 dark:text-white" x-text="resModal === 'edit' ? 'Edit resident' : 'Add resident'"></h2>
+                        <button type="button" @click="resModal = null" class="btn btn-subtle btn-icon"><x-icon name="close" /></button>
+                    </div>
+                    <div class="card-pad space-y-4">
+                        <div>
+                            <label class="field-label">Resident name</label>
+                            <input type="text" name="name" x-model="res.name" class="w-full text-sm" required>
+                        </div>
+                        <div>
+                            <label class="field-label">Site</label>
+                            <select name="site_id" x-model="res.site_id" class="w-full text-sm" required>
+                                <option value="">Select site</option>
+                                @foreach ($allSites as $s)
+                                    <option value="{{ $s->id }}">{{ $s->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 border-t border-ink-200/80 px-5 py-3.5 dark:border-ink-800">
+                        <button type="button" @click="resModal = null" class="btn btn-ghost">Cancel</button>
+                        <button type="submit" class="btn btn-primary"><x-icon name="check" class="h-4 w-4" /> Save resident</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
-
-    <script>
-        document.getElementById('sites-tab').addEventListener('click', () => {
-            document.getElementById('sites-content').classList.remove('hidden');
-            document.getElementById('residents-content').classList.add('hidden');
-            document.getElementById('sites-tab').classList.add('active-tab');
-            document.getElementById('residents-tab').classList.remove('active-tab');
-        });
-        document.getElementById('residents-tab').addEventListener('click', () => {
-            document.getElementById('residents-content').classList.remove('hidden');
-            document.getElementById('sites-content').classList.add('hidden');
-            document.getElementById('residents-tab').classList.add('active-tab');
-            document.getElementById('sites-tab').classList.remove('active-tab');
-        });
-
-        document.getElementById('add-site-btn').addEventListener('click', () => {
-            document.getElementById('site-modal').classList.remove('hidden');
-        });
-
-        document.getElementById('add-resident-btn').addEventListener('click', () => {
-            document.getElementById('resident-modal').classList.remove('hidden');
-        });
-
-        document.getElementById('close-site-modal').addEventListener('click', () => {
-            document.getElementById('site-modal').classList.add('hidden');
-        });
-
-        document.getElementById('close-resident-modal').addEventListener('click', () => {
-            document.getElementById('resident-modal').classList.add('hidden');
-        });
-
-        document.querySelectorAll('.edit-site-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const siteId = e.target.dataset.id;
-                const siteName = e.target.dataset.name;
-                const shift_1 = e.target.dataset.shift_1;
-                const shift_2 = e.target.dataset.shift_2;
-
-                document.getElementById('site-name').value = siteName;
-                document.getElementById('shift_1').value = shift_1;
-                document.getElementById('shift_2').value = shift_2;
-
-                // Change this line to use the named route
-                document.getElementById('site-form').action = "{{ route('sites.update', ':id') }}".replace(
-                    ':id', siteId);
-
-                const methodInput = document.createElement('input');
-                methodInput.type = 'hidden';
-                methodInput.name = '_method';
-                methodInput.value = 'PUT';
-                document.getElementById('site-form').appendChild(methodInput);
-
-                document.getElementById('site-modal').classList.remove('hidden');
-            });
-        });
-
-        document.querySelectorAll('.edit-resident-btn').forEach(button => {
-            button.addEventListener('click', (e) => {
-                const residentId = e.target.dataset.id;
-                const residentName = e.target.dataset.name;
-                const siteId = e.target.dataset.site;
-
-                document.getElementById('resident-name').value = residentName;
-                document.getElementById('site-id').value = siteId;
-
-                // Use named route for update
-                document.getElementById('resident-form').action = "{{ route('residents.update', ':id') }}"
-                    .replace(':id', residentId);
-
-                // Add hidden input for PUT method
-                const methodInput = document.createElement('input');
-                methodInput.type = 'hidden';
-                methodInput.name = '_method';
-                methodInput.value = 'PUT';
-                document.getElementById('resident-form').appendChild(methodInput);
-
-                document.getElementById('resident-modal').classList.remove('hidden');
-            });
-        });
-    </script>
 </x-app-layout>

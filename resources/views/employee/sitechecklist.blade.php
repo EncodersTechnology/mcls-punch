@@ -1,85 +1,38 @@
 <x-app-layout>
     <style>
-        body {
-            font-family: Arial, sans-serif;
+        /* Weekly checklist grid, themed with the design system tokens. */
+        .cgrid table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+        .cgrid th, .cgrid td {
+            border-bottom: 1px solid rgb(220 225 224 / 1);
+            padding: 9px 12px; text-align: center; vertical-align: middle;
         }
+        .cgrid th {
+            background: rgb(236 239 238 / 1); color: rgb(87 98 96 / 1);
+            font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+            position: sticky; top: 0; z-index: 5;
+        }
+        .cgrid td:first-child, .cgrid th:first-child { text-align: left; }
+        .cgrid tbody tr:hover td, .cgrid tr:hover td { background: rgb(239 250 247 / .55); }
+        .cgrid .section-header td, .cgrid .section-header th {
+            background: rgb(236 239 238 / 1); font-weight: 700; text-align: left;
+            font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: rgb(87 98 96 / 1);
+        }
+        .cgrid .highlight { font-weight: 700; }
+        .cgrid .monthly { background: rgb(214 242 234 / .6); }
+        .cgrid h2 { font-size: 15px; font-weight: 700; text-align: left !important; text-decoration: none !important; margin: 0 0 12px; }
 
-        .container {
-            width: 80%;
-            margin: 20px auto;
-        }
-
-        h2 {
-            text-align: center;
-            text-decoration: underline;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        th,
-        td {
-            border: 1px solid black;
-            padding: 10px;
-            text-align: center;
-        }
-
-        th {
-            background-color: #005f73;
-            color: white;
-        }
-
-        .section-header {
-            background-color: #d1d1d1;
-            font-weight: bold;
-        }
-
-        .highlight {
-            font-weight: bold;
-        }
-
-        .monthly {
-            background-color: #cce7f0;
-        }
-
-        .important {
-            color: red;
-            font-weight: bold;
-        }
-
-        .no-input {
-            background-color: #e0e0e0;
-        }
-
-        .missing-value {
-            background-color: rgb(227, 222, 222);
-        }
-
-        .tick {
-            color: green;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .cross {
-            color: red;
-            font-weight: bold;
-            font-size: 18px;
-        }
-
-        .site-filter {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+        .dark .cgrid th { background: rgb(31 39 36 / 1); color: rgb(192 202 198 / 1); }
+        .dark .cgrid th, .dark .cgrid td { border-bottom-color: rgb(42 51 48 / 1); }
+        .dark .cgrid tbody tr:hover td, .dark .cgrid tr:hover td { background: rgb(31 39 36 / .7); }
+        .dark .cgrid .section-header td, .dark .cgrid .section-header th { background: rgb(31 39 36 / 1); color: rgb(192 202 198 / 1); }
+        .dark .cgrid .monthly { background: rgb(19 77 69 / .35); }
     </style>
 
-    <div class="container">
+    <x-page-header title="Site Checklist" subtitle="Weekly task completion for the sites you can access." />
+
+    <div class="cgrid">
+
+    <div class="card card-pad mb-6">
         @if ($sites->count() > 1)
         <form method="GET" action="{{ route('site.checklist') }}" class="site-filter">
             <label for="site_id">Select Site:</label>
@@ -180,7 +133,7 @@
         </table>
 
         <!-- Night Shift Checklist -->
-        <div class="container">
+        <div class="card card-pad mb-6">
             <table>
                 <tr class="section-header">
                     <td colspan="8">NIGHT SHIFT CHECKLIST - {{ $site->name }}</td>
@@ -262,4 +215,5 @@
             });
         });
     </script>
+    </div>
 </x-app-layout>

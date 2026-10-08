@@ -1,147 +1,67 @@
-<nav x-data="{ open: false }" class="bg-white dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}">
-                        <x-application-logo class="block h-9 w-auto fill-current text-gray-800 dark:text-gray-200" />
-                    </a>
-                </div>
+@php
+    $role = auth()->user()->usertype;
+    $isAdmin = in_array($role, ['admin', 'siteadmin']);
+@endphp
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    @if(auth()->user()->usertype == 'employee')
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                    @endif
-                    @if(auth()->user()->usertype == 'admin' || auth()->user()->usertype == 'siteadmin')
-                    <x-nav-link :href="route('admin.log.data')" :active="request()->routeIs('admin.log.data')">
-                        {{ __('Resident Log Data') }}
-                    </x-nav-link>    
-                    @else
-                    <x-nav-link :href="route('employee.log.data')" :active="request()->routeIs('employee.log.data')">
-                        {{ __('Resident Log Data') }}
-                    </x-nav-link>
-                    @if(auth()->user()->usertype == 'employee')
-                    <x-nav-link :href="route('employee.log.form')" :active="request()->routeIs('employee.log.form')">
-                        {{ __('Site Log Form') }}
-                    </x-nav-link>
-                    @endif
-                    @endif
-                    @if(auth()->user()->usertype == 'admin' || auth()->user()->usertype == 'siteadmin')
-                    <x-nav-link :href="route('admin.site.checklist')" :active="request()->routeIs('admin.site.checklist')">
-                        {{ __('Site Checklist') }}
-                    </x-nav-link>  
-                    @else
-                    <x-nav-link :href="route('site.checklist')" :active="request()->routeIs('site.checklist')">
-                        {{ __('Site Checklist') }}
-                    </x-nav-link>  
-                    @endif
-                    @if(in_array(auth()->user()->usertype, ['admin','siteadmin','director','manager','supervisor']))
-                        <x-nav-link :href="route('admin.checklist.management')" :active="request()->routeIs('admin.checklist.management')">
-                            {{ __('Sites Checklist Settings') }}
-                        </x-nav-link> 
-                        @if(in_array(auth()->user()->usertype, ['admin','siteadmin','director']))
-                        <x-nav-link :href="route('admin.resident')" :active="request()->routeIs('admin.resident')">
-                            {{ __('Sites and Residents') }}
-                        </x-nav-link> 
-                        @endif  
-                        <x-nav-link :href="route('site.access.index')" :active="request()->routeIs('site.access.index')">
-                            {{ __('Access Management') }}
-                        </x-nav-link>    
-                    @endif
+<div class="flex h-16 shrink-0 items-center gap-2.5 border-b border-ink-200 px-4 dark:border-ink-800">
+    <a href="{{ route('dashboard') }}" class="flex min-w-0 items-center gap-2.5">
+        <span class="shrink-0 rounded-lg bg-white p-1.5 ring-1 ring-ink-200/80 dark:ring-ink-700">
+            <x-application-logo class="h-7 w-auto" />
+        </span>
+        <span class="min-w-0 text-[10px] font-semibold uppercase leading-[1.35] tracking-wide text-ink-500 dark:text-ink-400">
+            Records Management System
+        </span>
+    </a>
+    <button @click="open = false" class="btn btn-subtle btn-icon ml-auto lg:hidden" aria-label="Close menu">
+        <x-icon name="close" />
+    </button>
+</div>
 
-                </div>
-            </div>
+<nav class="flex-1 space-y-1 overflow-y-auto px-3 py-4">
+    <p class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-ink-400">Overview</p>
 
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:text-gray-700 dark:hover:text-gray-300 focus:outline-none transition ease-in-out duration-150">
-                            <div class="flex flex-col items-start">
-                                <div>Hello! {{ Auth::user()->name }}</div>
-                                <div class="text-xs text-gray-400 dark:text-gray-500 capitalize">
-                                    {{ Auth::user()->usertype == 'employee' ? 'Site User' : Auth::user()->usertype }}
-                                </div>
-                            </div>
+    @if ($role === 'employee')
+        <x-nav-link icon="dashboard" :href="route('dashboard')" :active="request()->routeIs('dashboard')">{{ __('Dashboard') }}</x-nav-link>
+    @endif
 
-                            <div class="ms-1">
-                                <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
+    @if ($isAdmin)
+        <x-nav-link icon="logs" :href="route('admin.log.data')" :active="request()->routeIs('admin.log.data')">{{ __('Resident Log Data') }}</x-nav-link>
+    @else
+        <x-nav-link icon="logs" :href="route('employee.log.data')" :active="request()->routeIs('employee.log.data')">{{ __('Resident Log Data') }}</x-nav-link>
+        @if ($role === 'employee')
+            <x-nav-link icon="form" :href="route('employee.log.form')" :active="request()->routeIs('employee.log.form')">{{ __('Site Log Form') }}</x-nav-link>
+        @endif
+    @endif
 
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            {{ __('Profile') }}
-                        </x-dropdown-link>
+    @if ($isAdmin)
+        <x-nav-link icon="checklist" :href="route('admin.site.checklist')" :active="request()->routeIs('admin.site.checklist')">{{ __('Site Checklist') }}</x-nav-link>
+    @else
+        <x-nav-link icon="checklist" :href="route('site.checklist')" :active="request()->routeIs('site.checklist')">{{ __('Site Checklist') }}</x-nav-link>
+    @endif
 
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
+    @if (in_array($role, ['admin', 'siteadmin', 'director', 'manager', 'supervisor']))
+        <p class="px-3 pb-1.5 pt-5 text-[10px] font-bold uppercase tracking-wider text-ink-400">Administration</p>
 
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
-                                                this.closest('form').submit();">
-                                {{ __('Log Out') }}
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div>
+        <x-nav-link icon="settings" :href="route('admin.checklist.management')" :active="request()->routeIs('admin.checklist.management')">{{ __('Sites Checklist Settings') }}</x-nav-link>
 
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-gray-500 dark:focus:text-gray-400 transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </div>
+        {{-- Kept in step with the admin middleware on this route. --}}
+        @if ($isAdmin)
+            <x-nav-link icon="sites" :href="route('admin.resident')" :active="request()->routeIs('admin.resident')">{{ __('Sites and Residents') }}</x-nav-link>
+        @endif
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-        </div>
+        <x-nav-link icon="users" :href="route('site.access.index')" :active="request()->routeIs('site.access.index')">{{ __('Access Management') }}</x-nav-link>
+    @endif
 
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200 dark:border-gray-600">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800 dark:text-gray-200">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-                <div class="text-xs text-gray-400 dark:text-gray-500 capitalize mt-1">
-                    Role: {{ Auth::user()->usertype }}
-                </div>
-            </div>
-
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    {{ __('Profile') }}
-                </x-responsive-nav-link>
-
-                <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
-                                        this.closest('form').submit();">
-                        {{ __('Log Out') }}
-                    </x-responsive-nav-link>
-                </form>
-            </div>
-        </div>
-    </div>
+    {{-- Operational health sits last: admin-only, same as the route's middleware. --}}
+    @if ($isAdmin)
+        <p class="px-3 pb-1.5 pt-5 text-[10px] font-bold uppercase tracking-wider text-ink-400">System</p>
+        <x-nav-link icon="health" :href="route('health.index')" :active="request()->routeIs('health.index')">{{ __('Health Check') }}</x-nav-link>
+    @endif
 </nav>
+
+<div class="shrink-0 border-t border-ink-200 p-3 dark:border-ink-800">
+    <div class="rounded-lg bg-ink-100 px-3 py-2.5 dark:bg-ink-800/60">
+        <p class="truncate text-xs font-semibold text-ink-800 dark:text-ink-100">{{ auth()->user()->name }}</p>
+        <p class="mt-1"><x-role-badge :type="$role" /></p>
+    </div>
+</div>

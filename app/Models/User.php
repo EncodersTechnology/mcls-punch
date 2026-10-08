@@ -94,66 +94,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Remove a site from the user and update FormData if applicable.
-     *
-     * @param int $siteId
-     * @param int|null $newSiteId
-     * @return void
-     */
-    public function removeSite($siteId, $newSiteId = null)
-    {
-        if ($this->usertype === 'supervisor' && $newSiteId) {
-            // Update FormData to new site
-            FormData::where('site_id', $siteId)
-                ->whereHas('createdBy', function ($query) {
-                    $query->where('usertype', 'employee')
-                          ->whereHas('sites', function ($q) {
-                              $q->where('site_id', $this->sites()->pluck('site_id'));
-                          });
-                })
-                ->update(['site_id' => $newSiteId]);
-        }
-        // Remove the site association
-        $this->sites()->detach($siteId);
-    }
-
-    /**
-     * Transfer a site to another Supervisor under the same Manager, updating FormData.
-     *
-     * @param int $siteId
-     * @param User $toSupervisor
-     * @return bool
-     */
-    public function transferSiteToSupervisor($siteId, User $toSupervisor)
-    {
-        if ($this->usertype !== 'supervisor' || $toSupervisor->usertype !== 'supervisor') {
-            return false;
-        }
-
-        // Verify both Supervisors share the same Manager
-        if ($this->manager_id !== $toSupervisor->manager_id) {
-            return false;
-        }
-
-        // Update FormData to new Supervisor's site
-        FormData::where('site_id', $siteId)
-            ->whereHas('createdBy', function ($query) {
-                $query->where('usertype', 'employee')
-                      ->whereHas('sites', function ($q) {
-                          $q->where('site_id', $this->sites()->pluck('site_id'));
-                      });
-            })
-            ->update(['site_id' => $siteId]);
-
-        // Remove site from current Supervisor
-        $this->sites()->detach($siteId);
-        // Assign site to target Supervisor
-        $toSupervisor->assignSite($siteId);
-
-        return true;
-    }
-
-    /**
      * Check if the user can manage another user or their data/sites.
      *
      * @param User $user
@@ -170,8 +110,8 @@ class User extends Authenticatable
             'employee' => 1,
         ];
 
-        // Check hierarchy level
-        if ($hierarchy[$this->usertype] <= $hierarchy[$user->usertype]) {
+        // Check hierarchy level. usertype is nullable, so unknown roles rank lowest.
+        if (($hierarchy[$this->usertype] ?? 0) <= ($hierarchy[$user->usertype] ?? 0)) {
             return false;
         }
 

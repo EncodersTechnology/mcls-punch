@@ -12,9 +12,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('form_data', function (Blueprint $table) {
+        if (DB::getDriverName() === 'mysql') {
             DB::statement("ALTER TABLE form_data MODIFY shift VARCHAR(255)");
-        });
+        }
     }
 
     /**
@@ -22,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('form_data', function (Blueprint $table) {
+        if (DB::getDriverName() === 'mysql') {
             DB::statement("ALTER TABLE form_data MODIFY shift ENUM('morning', 'night')");
-        });
+        }
     }
 };

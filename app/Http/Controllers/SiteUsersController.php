@@ -19,7 +19,7 @@ class SiteUsersController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $currentUser = User::where('id', auth()->user()->id)->first();
 
@@ -28,8 +28,12 @@ class SiteUsersController extends Controller
             return redirect()->back()->with('error', 'You do not have permission to view users.');
         }
 
-        // Get users based on current user's permissions
-        $users = $this->getUsersBasedOnRole($currentUser);
+        // Everything this user may see. Kept whole for the modal dropdowns, which must
+        // list every possible manager rather than only those on the current page.
+        $allUsers = $this->getUsersBasedOnRole($currentUser);
+
+        $users = $this->filterUsers($allUsers, $request);
+        $users = $this->paginateCollection($users, 15, $request, 'page');
 
         // Get sites based on current user's access
         $sites = $currentUser->getAccessibleSites();
@@ -37,7 +41,79 @@ class SiteUsersController extends Controller
         // Get manageable user types
         $manageableUserTypes = $this->getManageableUserTypes($currentUser);
 
-        return view('admin.users.index', compact('users', 'sites', 'manageableUserTypes'));
+        return view('admin.users.index', compact('users', 'allUsers', 'sites', 'manageableUserTypes'));
+    }
+
+    /** Apply the search / role filters from the toolbar. */
+    private function filterUsers($users, Request $request)
+    {
+        if ($request->filled('search')) {
+            $needle = mb_strtolower($request->search);
+            $users = $users->filter(fn ($u) =>
+                str_contains(mb_strtolower((string) $u->name), $needle) ||
+                str_contains(mb_strtolower((string) $u->email), $needle));
+        }
+
+        if ($request->filled('usertype')) {
+            $users = $users->where('usertype', $request->usertype);
+        }
+
+        if ($request->filled('site_id')) {
+            $siteId = (int) $request->site_id;
+            $users = $users->filter(fn ($u) => $u->sites->contains('id', $siteId));
+        }
+
+        return $users->values();
+    }
+
+    /**
+     * These lists are assembled in PHP (the manager branch unions two queries), so they
+     * are paginated after the fact rather than at the database.
+     */
+    private function paginateCollection($items, int $perPage, Request $request, string $pageName)
+    {
+        $page = max(1, (int) $request->input($pageName, 1));
+
+        return new \Illuminate\Pagination\LengthAwarePaginator(
+            $items->forPage($page, $perPage)->values(),
+            $items->count(),
+            $perPage,
+            $page,
+            ['path' => $request->url(), 'pageName' => $pageName]
+        );
+    }
+
+    /** Stream the user list the caller is allowed to see as CSV. */
+    public function export(Request $request)
+    {
+        $currentUser = User::find(auth()->id());
+
+        if ($currentUser->usertype === 'employee') {
+            abort(403, 'You do not have permission to export users.');
+        }
+
+        $users = $this->filterUsers($this->getUsersBasedOnRole($currentUser), $request);
+        $filename = 'users-' . now()->format('Y-m-d-His') . '.csv';
+
+        return response()->stream(function () use ($users) {
+            $out = fopen('php://output', 'w');
+            fwrite($out, chr(0xEF) . chr(0xBB) . chr(0xBF));
+            fputcsv($out, ['Name', 'Email', 'Role', 'Manager', 'Sites']);
+            foreach ($users as $u) {
+                fputcsv($out, [
+                    $u->name,
+                    $u->email,
+                    $u->usertype === 'employee' ? 'Site User' : ucfirst((string) $u->usertype),
+                    $u->manager->name ?? '',
+                    $u->sites->pluck('name')->implode(', '),
+                ]);
+            }
+            fclose($out);
+        }, 200, [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            'Cache-Control'       => 'no-store, no-cache',
+        ]);
     }
 
     private function getUsersBasedOnRole($currentUser)
@@ -129,6 +205,11 @@ class SiteUsersController extends Controller
     {
         $currentUser = Auth::user();
         $manageableTypes = $this->getManageableUserTypes($currentUser);
+        $accessibleSiteIds = $currentUser->getAccessibleSites()->pluck('id')->all();
+
+        if (empty($manageableTypes)) {
+            return redirect()->back()->with('error', 'You do not have permission to create users.');
+        }
 
         // Prevent siteadmin from creating another siteadmin
         if ($currentUser->usertype === 'siteadmin' && $request->usertype === 'siteadmin') {
@@ -149,12 +230,13 @@ class SiteUsersController extends Controller
             'manager_id' => 'nullable|exists:users,id',
         ];
 
-        // Add site validation based on usertype
+        // Add site validation based on usertype. Sites are restricted to the ones the
+        // creating user can actually access.
         if ($request->usertype === 'supervisor') {
             $rules['site_ids'] = 'required|array|min:1';
-            $rules['site_ids.*'] = 'exists:sites,id';
+            $rules['site_ids.*'] = ['exists:sites,id', Rule::in($accessibleSiteIds)];
         } elseif ($request->usertype === 'employee') {
-            $rules['site_id'] = 'required|exists:sites,id';
+            $rules['site_id'] = ['required', 'exists:sites,id', Rule::in($accessibleSiteIds)];
         }
 
         $validator = Validator::make($request->all(), $rules);
@@ -210,6 +292,7 @@ class SiteUsersController extends Controller
         }
 
         $manageableTypes = $this->getManageableUserTypes($currentUser);
+        $accessibleSiteIds = $currentUser->getAccessibleSites()->pluck('id')->all();
 
         // Validation rules
         $rules = [
@@ -225,12 +308,13 @@ class SiteUsersController extends Controller
             'manager_id' => 'nullable|exists:users,id',
         ];
 
-        // Add site validation based on usertype
+        // Add site validation based on usertype. Sites are restricted to the ones the
+        // editing user can actually access.
         if ($request->usertype === 'supervisor') {
             $rules['site_ids'] = 'required|array|min:1';
-            $rules['site_ids.*'] = 'exists:sites,id';
+            $rules['site_ids.*'] = ['exists:sites,id', Rule::in($accessibleSiteIds)];
         } elseif ($request->usertype === 'employee') {
-            $rules['site_id'] = 'required|exists:sites,id';
+            $rules['site_id'] = ['required', 'exists:sites,id', Rule::in($accessibleSiteIds)];
         }
 
         $validator = Validator::make($request->all(), $rules);
@@ -403,20 +487,38 @@ class SiteUsersController extends Controller
 
     public function getSupervisorSites($id)
     {
+        $currentUser = Auth::user();
+
+        // Same roles that are allowed to perform the transfer this list feeds.
+        if (!in_array($currentUser->usertype, ['manager', 'director', 'siteadmin', 'admin'])) {
+            return response()->json(['error' => 'Forbidden'], 403);
+        }
+
         $supervisor = User::findOrFail($id);
-        
+
         // Verify user is a supervisor
         if ($supervisor->usertype !== 'supervisor') {
             return response()->json(['error' => 'User is not a supervisor'], 400);
         }
-        
-        $sites = $supervisor->sites;
+
+        // Only expose the supervisor's sites that the caller can access themselves.
+        $accessibleSiteIds = $currentUser->getAccessibleSites()->pluck('id');
+        $sites = $supervisor->sites->whereIn('id', $accessibleSiteIds)->values();
+
         return response()->json($sites);
     }
 
    function magicLogin($id)
     {
+        $currentUser = Auth::user();
         $user = User::find($id);
+
+        // Only allow logging in as a user the current user is permitted to manage,
+        // i.e. one of the users listed for them on the access management screen.
+        if (!$user || !$this->getUsersBasedOnRole($currentUser)->contains('id', $user->id)) {
+            abort(403, 'You do not have permission to log in as this user.');
+        }
+
         $generator = new LoginUrl($user);
         $generator->setRedirectUrl('/dashboard'); // Override the default url to redirect to after login
         $url = $generator->generate();

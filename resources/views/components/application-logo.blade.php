@@ -1,3 +1,2 @@
-<svg viewBox="0 0 316 316" xmlns="http://www.w3.org/2000/svg" {{ $attributes }}>
-<img src="{{assets('logo.png')" alt="">   
-</svg>
+{{-- The original file wrapped an <img> inside an <svg> with a broken assets() call. --}}
+<img src="{{ asset('logo.png') }}" alt="{{ config('app.name') }}" {{ $attributes->merge(['class' => 'h-9 w-auto']) }}>

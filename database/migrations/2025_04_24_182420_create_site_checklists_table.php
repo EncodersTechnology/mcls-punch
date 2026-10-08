@@ -75,7 +75,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('site_checklists_data');
+        Schema::dropIfExists('site_checklist_data');
         Schema::dropIfExists('site_checklist_settings');
         Schema::dropIfExists('xwalk_site_checklist_type');
     }

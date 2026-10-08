@@ -1,123 +1,120 @@
+@php $days = ['sun' => 'Sun', 'mon' => 'Mon', 'tue' => 'Tue', 'wed' => 'Wed', 'thu' => 'Thu', 'fri' => 'Fri', 'sat' => 'Sat']; @endphp
+
 <x-app-layout>
-    <div id="toast" class="fixed top-5 right-5 z-50 hidden px-4 py-2 rounded shadow-lg text-white text-sm"></div>
-    <div class="container mx-auto p-4">
+    <div x-data="{
+            toast: null, tone: 'ok',
+            async toggle(el) {
+                const res = await fetch('{{ route('admin.settings.toggle') }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', 'Accept': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content
+                    },
+                    body: JSON.stringify({
+                        site_id: {{ (int) $selectedSiteId }},
+                        task_id: Number(el.dataset.taskId),
+                        day: el.dataset.day,
+                        enabled: el.checked
+                    })
+                }).catch(() => null);
+
+                const ok = res && res.ok && (await res.json()).success;
+                if (!ok) { el.checked = !el.checked; }
+                this.tone = ok ? 'ok' : 'bad';
+                this.toast = ok ? 'Setting saved' : 'Could not save that change';
+                setTimeout(() => this.toast = null, 2600);
+            }
+         }">
+
+        <div x-show="toast" x-cloak x-transition
+             class="fixed right-5 top-20 z-50 rounded-lg px-4 py-2.5 text-sm font-semibold text-white shadow-lift"
+             :class="tone === 'ok' ? 'bg-brand-600' : 'bg-rose-600'" x-text="toast"></div>
+
+        <x-page-header title="Sites Checklist Settings"
+                       subtitle="Choose which tasks appear on which weekday, per site." />
+
         @if ($sites->isNotEmpty())
-            <form method="GET" action="{{ route('admin.checklist.management') }}" class="mb-6">
-                <label class="block text-sm font-medium text-black-300 mb-1">Select Site</label>
-                <select name="site_id" onchange="this.form.submit()"
-                    class="block w-full text-black border border-gray-500 rounded-md p-2">
-                    <option value="" {{ !$selectedSiteId ? 'selected' : '' }}>Select a site</option>
-                    @foreach ($sites as $site)
-                        <option value="{{ $site->id }}" {{ $selectedSiteId == $site->id ? 'selected' : '' }}>
-                            {{ $site->name }}
-                        </option>
-                    @endforeach
-                </select>
+            <form method="GET" action="{{ route('admin.checklist.management') }}" class="card card-pad mb-5">
+                <div class="flex flex-wrap items-end gap-3">
+                    <div class="min-w-[260px] flex-1">
+                        <label for="cs-site" class="field-label">Site</label>
+                        <select id="cs-site" name="site_id" onchange="this.form.submit()" class="w-full text-sm">
+                            <option value="">Select a site…</option>
+                            @foreach ($sites as $s)
+                                <option value="{{ $s->id }}" @selected($selectedSiteId == $s->id)>{{ $s->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @if ($selectedSiteId)
+                        <span class="pill pill-brand mb-2.5"><x-icon name="check" class="h-3 w-3" /> Changes save instantly</span>
+                    @endif
+                </div>
             </form>
 
             @if ($selectedSiteId)
                 @foreach (['DAY' => $day_shift_checklist, 'NIGHT' => $night_shift_checklist] as $shift => $checklists)
-                    <div class="mb-8">
-                        <h2 class="text-xl font-bold text-black mb-2">{{ $shift }} SHIFT CHECKLIST</h2>
-                        <table class="w-full bg-white text-black rounded shadow overflow-hidden">
-                            <thead class="bg-gray-100">
-                                <tr>
-                                    <th class="px-2 py-1 text-left">Task</th>
-                                    @foreach (['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as $day)
-                                        <th class="px-2 py-1 uppercase">{{ strtoupper($day) }}</th>
-                                    @endforeach
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($checklists as $groupName => $rows)
-                                    <tr class="bg-gray-200">
-                                        <td colspan="8" class="font-bold px-2 py-1">{{ $groupName }}</td>
-                                    </tr>
-                                    @foreach ($rows as $row)
-                                        @php
-                                            $setting = \App\Models\SiteChecklistSetting::where('site_id', $selectedSiteId)
-                                                ->where('site_checklist_id', $row->id)
-                                                ->first();
-                                        @endphp
+                    <x-card class="mb-6" :pad="false">
+                        <div class="card-head">
+                            <h2 class="text-base font-bold text-ink-900 dark:text-white">
+                                {{ ucfirst(strtolower($shift)) }} shift checklist
+                            </h2>
+                            <span class="pill {{ $shift === 'DAY' ? 'pill-warn' : 'pill-info' }}">
+                                <x-icon :name="$shift === 'DAY' ? 'sun' : 'moon'" class="h-3 w-3" /> {{ $shift }}
+                            </span>
+                        </div>
+
+                        @if ($checklists->isEmpty())
+                            <x-empty-state icon="checklist" title="No tasks configured for this shift" />
+                        @else
+                            <div class="tablewrap">
+                                <table class="dtable">
+                                    <thead>
                                         <tr>
-                                            <td class="px-2 py-1">{{ $row->task_name }}</td>
-                                            @foreach (['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'] as $day)
-                                                <td class="text-center">
-                                                    <input type="checkbox" data-task-id="{{ $row->id }}"
-                                                        data-day="{{ $day }}" class="toggle-checkbox"
-                                                        @if (optional($setting)->{$day . '_enabled_bool'}) checked @endif>
-                                                </td>
+                                            <th class="min-w-[280px]">Task</th>
+                                            @foreach ($days as $label)
+                                                <th class="text-center">{{ $label }}</th>
                                             @endforeach
                                         </tr>
-                                    @endforeach
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($checklists as $groupName => $rows)
+                                            <tr class="bg-ink-100/70 dark:bg-ink-800/50">
+                                                <td colspan="8" class="text-[11px] font-bold uppercase tracking-wider text-ink-600 dark:text-ink-300">
+                                                    {{ $groupName }}
+                                                </td>
+                                            </tr>
+                                            @foreach ($rows as $row)
+                                                @php $setting = $settings[$row->id] ?? null; @endphp
+                                                <tr>
+                                                    <td class="text-ink-800 dark:text-ink-200">{{ $row->task_name }}</td>
+                                                    @foreach ($days as $day => $label)
+                                                        <td class="text-center">
+                                                            <input type="checkbox" data-task-id="{{ $row->id }}" data-day="{{ $day }}"
+                                                                   @change="toggle($event.target)"
+                                                                   @checked(optional($setting)->{$day . '_enabled_bool'})
+                                                                   class="h-4 w-4 cursor-pointer rounded border-ink-300 text-brand-600 focus:ring-brand-500 dark:border-ink-600 dark:bg-ink-800">
+                                                        </td>
+                                                    @endforeach
+                                                </tr>
+                                            @endforeach
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+                    </x-card>
                 @endforeach
             @else
-                <p class="text-center text-gray-600">Please select a site to manage its checklist settings.</p>
+                <x-card>
+                    <x-empty-state icon="settings" title="Select a site"
+                                   message="Pick a site above to manage which checklist tasks run on which days." />
+                </x-card>
             @endif
         @else
-            <p class="text-center text-red-600">No sites available for management.</p>
+            <x-card>
+                <x-empty-state icon="sites" title="No sites available"
+                               message="You do not currently have access to any site's checklist settings." />
+            </x-card>
         @endif
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.toggle-checkbox').forEach(checkbox => {
-                checkbox.addEventListener('change', async (e) => {
-                    const taskId = e.target.dataset.taskId;
-                    const day = e.target.dataset.day;
-                    const isChecked = e.target.checked;
-                    const siteId = "{{ $selectedSiteId }}";
-
-                    @php
-                        $toggleUrl = route('admin.settings.toggle');
-                        if (app()->environment('production')) {
-                            $toggleUrl = str_replace('http://', 'https://', $toggleUrl);
-                        }
-                    @endphp
-
-                    await fetch("{{ $toggleUrl }}", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-                        },
-                        body: JSON.stringify({
-                            site_id: siteId,
-                            task_id: taskId,
-                            day: day,
-                            enabled: isChecked
-                        })
-                    })
-                    .then(res => res.json())
-                    .then(data => {
-                        if (data.success) {
-                            showToast("Setting saved successfully", "success");
-                        } else {
-                            showToast("Failed to save setting", "error");
-                        }
-                    })
-                    .catch(() => {
-                        showToast("An error occurred. Please try again.", "error");
-                    });
-                });
-            });
-        });
-
-        function showToast(message, type = "success") {
-            const toast = document.getElementById('toast');
-            toast.className = `fixed top-5 right-5 z-50 px-4 py-2 rounded shadow-lg text-white text-sm ${
-                type === "success" ? "bg-green-600" : "bg-red-600"
-            }`;
-            toast.textContent = message;
-            toast.style.display = 'block';
-
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 3000);
-        }
-    </script>
 </x-app-layout>

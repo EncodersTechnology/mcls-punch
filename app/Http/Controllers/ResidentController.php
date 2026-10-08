@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FormData;
 use App\Models\Resident;
 use App\Models\Site;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ResidentController extends Controller
 {
@@ -19,6 +21,13 @@ class ResidentController extends Controller
     public function getResidents(Request $request)
     {
         $site_id = $request->site_id;
+
+        // Only expose residents of sites the current user can access.
+        $accessibleSiteIds = Auth::user()->getAccessibleSites()->pluck('id');
+        if (!$request->filled('site_id') || !$accessibleSiteIds->contains($site_id)) {
+            return response()->json([]);
+        }
+
         // Fetch the residents based on the site_id
         $residents = Resident::where('site_id', $site_id)->get();
         return $residents;
@@ -88,6 +97,13 @@ class ResidentController extends Controller
     {
         // Find the resident by ID
         $resident = Resident::findOrFail($id);
+
+        // Logs reference the resident and must outlive them; the foreign key restricts the
+        // delete anyway, so catch it here instead of returning a 500.
+        if (FormData::where('resident_id', $resident->id)->exists()) {
+            return redirect()->route('admin.resident')
+                ->with('error', 'This resident has logs recorded against them and cannot be deleted.');
+        }
 
         // Delete the resident
         $resident->delete();

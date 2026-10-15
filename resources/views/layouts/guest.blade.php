@@ -32,9 +32,11 @@
         <div aria-hidden="true" class="pointer-events-none absolute -bottom-32 -left-20 h-[380px] w-[380px] rounded-full bg-brand-300/20 blur-3xl"></div>
 
         <div class="relative">
-            <div class="inline-flex items-center rounded-2xl bg-white/95 px-6 py-5 shadow-lift ring-1 ring-white/20">
+            <a href="https://multiculturalcls.org"
+               title="Multicultural Community Living Services"
+               class="inline-flex items-center rounded-2xl bg-white/95 px-6 py-5 shadow-lift ring-1 ring-white/20 transition hover:bg-white hover:shadow-xl focus-visible:ring-2 focus-visible:ring-white">
                 <img src="{{ asset('logo.png') }}" alt="Multicultural Community Living Services" class="h-20 w-auto">
-            </div>
+            </a>
             <p class="mt-4 text-[13px] font-semibold uppercase tracking-[0.18em] text-brand-200">
                 Records Management System
             </p>
@@ -61,9 +63,11 @@
     <div class="flex flex-1 items-center justify-center px-5 py-12 sm:px-8">
         <div class="w-full max-w-[400px] animate-fade-up">
             <div class="mb-8 lg:hidden">
-                <div class="inline-flex items-center rounded-xl bg-white px-4 py-3 shadow-card ring-1 ring-ink-200/70">
+                <a href="https://multiculturalcls.org"
+                   title="Multicultural Community Living Services"
+                   class="inline-flex items-center rounded-xl bg-white px-4 py-3 shadow-card ring-1 ring-ink-200/70 transition hover:shadow-lift">
                     <img src="{{ asset('logo.png') }}" alt="Multicultural Community Living Services" class="h-14 w-auto">
-                </div>
+                </a>
                 <p class="mt-3 text-[11px] font-semibold uppercase tracking-[0.16em] text-ink-500">
                     Records Management System
                 </p>
